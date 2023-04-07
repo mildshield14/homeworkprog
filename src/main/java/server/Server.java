@@ -1,10 +1,9 @@
 package server;
 
 import javafx.util.Pair;
+import server.models.RegistrationForm;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ public class Server {
         this.handlers.add(h);
     }
 
-    private void alertHandlers(String cmd, String arg) {
+    private void alertHandlers(String cmd, String arg) throws IOException, ClassNotFoundException {
         for (EventHandler h : this.handlers) {
             h.handle(cmd, arg);
         }
@@ -75,7 +74,7 @@ public class Server {
         client.close();
     }
 
-    public void handleEvents(String cmd, String arg) {
+    public void handleEvents(String cmd, String arg) throws IOException, ClassNotFoundException {
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
         } else if (cmd.equals(LOAD_COMMAND)) {
