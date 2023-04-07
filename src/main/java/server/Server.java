@@ -99,8 +99,44 @@ public class Server {
      et renvoyer un message de confirmation au client.
      La méthode gére les exceptions si une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
      */
-    public void handleRegistration() {
+    public void handleRegistration() throws IOException, ClassNotFoundException {
         // TODO: implémenter cette méthode
-    }
+
+        RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
+
+        String filename = "src/main/java/server/data/inscription.txt";
+        BufferedReader reader = null;
+
+
+            FileWriter fw = null;
+            BufferedWriter writer = null;
+
+
+                fw = new FileWriter("src/main/java/server/data/inscription.txt", true);
+                writer = new BufferedWriter(fw);
+                String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
+
+                writer.append("\n\n" + s);
+
+                String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
+                System.out.println(msg);
+
+
+                // Close both the writer and the file writer, even if an exception was thrown
+                if (writer != null) {
+                    try {
+                        writer.close();
+                    } catch (IOException e) {
+                        // Handle the exception
+                    }
+                }
+                if (fw != null) {
+                    try {
+                        fw.close();
+                    } catch (IOException e) {
+                        // Handle the exception
+                    }
+                }
+            }
 }
 
