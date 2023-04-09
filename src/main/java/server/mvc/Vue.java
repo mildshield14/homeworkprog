@@ -1,5 +1,4 @@
-package server;
-package mvc;
+package server.mvc;
 
 import javafx.geometry.Insets;
 import javafx.scene.control.*;
