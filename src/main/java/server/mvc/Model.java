@@ -1,10 +1,10 @@
-package server;
-package mvc;
+package server.mvc;
 
 import javafx.application.Application;
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
 import javafx.stage.Stage;
+import server.Client;
 
 import java.util.ArrayList;
 
