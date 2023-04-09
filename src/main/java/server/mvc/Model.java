@@ -1,4 +1,5 @@
 package server;
+package mvc;
 
 import javafx.application.Application;
 import javafx.scene.control.Alert;
