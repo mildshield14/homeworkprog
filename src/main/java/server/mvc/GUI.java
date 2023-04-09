@@ -1,5 +1,4 @@
-package server;
-package mvc;
+package server.mvc;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
