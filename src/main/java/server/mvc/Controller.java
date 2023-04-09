@@ -1,5 +1,4 @@
-package server;
-package mvc;
+package server.mvc;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.TextField;
