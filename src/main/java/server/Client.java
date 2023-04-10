@@ -8,8 +8,8 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Scanner;
-
 public class Client {
+    public static ArrayList<Course> courseEntry;
     public static String message;
     public static String startGUI(ArrayList entry){
         try {
@@ -55,62 +55,122 @@ public class Client {
         return message;
     }
 
+    public static ArrayList arraylist (){return courseEntry;}
+
+    public static void setCourseEntry(ArrayList<Course> courseEntry) {
+        Client.courseEntry = courseEntry;
+    }
 
     public static void main(String[] args) {
 
-        try {
+        boolean go=true;
 
-            int port = 1337;
+        while (go==true) {
+            try {
 
-            // create a socket on the specified port
-            Socket socket = new Socket("localhost", port);
+                int port = 1337;
 
-
-            System.out.println("Connected to server on port " + port);
-            OutputStreamWriter os = new OutputStreamWriter(
-                    socket.getOutputStream()
-            );
+                // create a socket on the specified port
+                Socket socket = new Socket("localhost", port);
 
 
-            BufferedWriter writer = new BufferedWriter(os);
+                System.out.println("Connected to server on port " + port);
+                OutputStreamWriter os = new OutputStreamWriter(
+                        socket.getOutputStream()
+                );
 
-            Scanner scanner = new Scanner(System.in);
+
+                BufferedWriter writer = new BufferedWriter(os);
+
+                Scanner scanner = new Scanner(System.in);
 
 
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-            String com="";
-            Boolean done = true;
+                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+                String com = "";
+                Boolean done = true;
 
                 System.out.println("What: ");
+
+
                 com = scanner.nextLine();
+                if (com.equals("1") || com.equals("2") || com.equals("3")) {
+                    try {
+                        objectOutputStream.writeObject("CHARGER " + com);
+                    } catch (IOException e) {
+                        // Handle the exception
+                        System.out.println(com);
+                        e.printStackTrace();
+                    }
 
-            if (com.equals("INSCRIRE")) {
-ArrayList<String> entry= new ArrayList<>();
-               inscrire(false,writer, socket, scanner, objectOutputStream, com, done, entry);
+                    objectOutputStream.flush();
 
+                    com = scanner.nextLine();
+
+                    if (com.equals("2")) {
+                        com = "2";
+                        go = false;
+                    }
+
+                }
+
+//Test Course
+
+                Course cour1 = new Course("Programmation1", "IFT1015", "Automne");
+                Course cour2 = new Course("Base_de_donnees", "IFT2256", "Hiver");
+                Course cour3 = new Course("Architecture_des_ordinateurs", "IFT1227", "Ete");
+                 ArrayList<Course> courseEn= new ArrayList<>();
+
+
+                courseEn.add(cour1);
+                courseEn.add(cour2);
+                courseEn.add(cour3);
+                setCourseEntry(courseEn);
+
+                if (com.equals("2")) {
+                    com = "INSCRIRE";
+                    ArrayList<String> entry = new ArrayList<>(); //Utilisation pour le GUI; mais ici il sera null
+                    inscrire(false, writer, socket, scanner, objectOutputStream, com, done, entry);
+
+                }
+
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
             }
-
-        } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
-
 
     }
 
     public static void inscrire(Boolean dev3, BufferedWriter writer, Socket socket, Scanner scanner, ObjectOutputStream objectOutputStream, String com, Boolean done, ArrayList entry) throws IOException {
+        int port1 = 1337;
+
+        // create a socket on the specified port
+        Socket socket1 = new Socket("localhost", port1);
+
+
+        System.out.println("Connected to server on port " + port1);
+
+
+        OutputStreamWriter os = new OutputStreamWriter(
+                socket1.getOutputStream()
+        );
+
+
+
+        ObjectOutputStream objectOutputStream1 = new ObjectOutputStream(socket1.getOutputStream());
+
 
         try {
-            objectOutputStream.writeObject(com);
+            objectOutputStream1.writeObject("INSCRIRE");
         } catch (IOException e) {
             // Handle the exception
-            System.out.println(com);
+            System.out.println("INSCRIRE");
             e.printStackTrace();
         }
 
 
-        objectOutputStream.flush();
+        objectOutputStream1.flush();
 
         while (done) {
 
@@ -131,37 +191,32 @@ ArrayList<String> entry= new ArrayList<>();
                 System.out.println("Enter your course name: ");
                 String courseName = scanner.nextLine();
 
-                //Test Course
 
-                Course cour1 = new Course("Programmation1", "IFT1015", "Automne");
-                Course cour2 = new Course("Base_de_donnees", "IFT2256", "Hiver");
-                Course cour3 = new Course("Architecture_des_ordinateurs", "IFT1227", "Ete");
-                ArrayList<Course> course = new ArrayList<>();
+                ArrayList<Course> courseEn =arraylist();
 
-                course.add(cour1);
-                course.add(cour2);
-                course.add(cour3);
-                int size = course.size();
+
+
+                int size = courseEn.size();
                 Course courInfo = new Course("", "", "");
                 for (int i = 0; i < size; i++) {
 
-                    if (course.get(i).getCode().equals(courseName)) {
-                        courInfo = course.get(i);
+                    if (courseEn.get(i).getCode().equals(courseName)) {
+                        courInfo = courseEn.get(i);
                     }
 
                 }
                 if (courInfo.getName() != "") {
                     RegistrationForm userRegistration = new RegistrationForm(firstName, lastName, email, matricule, courInfo);
-                    objectOutputStream.writeObject(userRegistration);
-                    objectOutputStream.flush();
+                    objectOutputStream1.writeObject(userRegistration);
+                    objectOutputStream1.flush();
 
                     String msg = ("Félicitations! Inscription réussie de " + userRegistration.getPrenom() + " au cours " + userRegistration.getCourse().getCode());
                     System.out.println(msg);
 
                 } else {
                     System.out.println("Unfortunately this course is not available");
-                    objectOutputStream.writeObject("ERROR");
-                    objectOutputStream.flush();
+                    objectOutputStream1.writeObject("ERROR");
+                    objectOutputStream1.flush();
                 }
 
             }else{
@@ -174,22 +229,14 @@ ArrayList<String> entry= new ArrayList<>();
                 System.out.println(courGUI);
 
 
-                //Test Course
+                ArrayList<Course> courseEn =arraylist();
 
-                Course cour1 = new Course("Programmation1", "IFT1015", "Automne");
-                Course cour2 = new Course("Base_de_donnees", "IFT2256", "Hiver");
-                Course cour3 = new Course("Architecture_des_ordinateurs", "IFT1227", "Ete");
-                ArrayList<Course> course = new ArrayList<>();
-
-                course.add(cour1);
-                course.add(cour2);
-                course.add(cour3);
-                int size = course.size();
+                int size = courseEn.size();
                 Course courInfo = new Course("", "", "");
                 for (int i = 0; i < size; i++) {
 
-                    if (course.get(i).getCode().equals(courGUI)) {
-                        courInfo = course.get(i);
+                    if (courseEn.get(i).getCode().equals(courGUI)) {
+                        courInfo = courseEn.get(i);
                     }
 
                 }
