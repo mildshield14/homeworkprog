@@ -91,7 +91,63 @@ public class Server {
      */
     public void handleLoadCourses(String arg) {
         // TODO: implémenter cette méthode
+        
+        String filePath = "src/main/java/server/data/cours.txt";
+        try {
+            FileReader listeDesCours = new FileReader(filePath);
+            BufferedReader lectureDuFichier = new BufferedReader(listeDesCours);
+            String unCours;
+
+            ArrayList<String> lesCours = new ArrayList<String>();
+            String session = arg;
+
+            switch (session) {
+
+                case "1":
+                    while ((unCours = lectureDuFichier.readLine()) != null) {
+                        lesCours.add(unCours);
+                        if (unCours.contains("Automne")) {
+                            lesCours.add(unCours);
+                        }
+                    }
+                    break;
+
+                case "2":
+                    while ((unCours = lectureDuFichier.readLine()) != null) {
+                        lesCours.add(unCours);
+                        if (unCours.contains("Hiver")) {
+                            lesCours.add(unCours);
+                        }
+                    }
+                    break;
+
+                case "3":
+                    while ((unCours = lectureDuFichier.readLine()) != null) {
+                        lesCours.add(unCours);
+                        if (unCours.contains("Ete")) {
+                            lesCours.add(unCours);
+                        }
+                    }
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("Session invalide.");
+
+            }
+            FileOutputStream listeCours = new FileOutputStream("Cours");
+            ObjectOutputStream Cours = new ObjectOutputStream(listeCours);
+
+            Cours.writeObject(lesCours);
+
+            Cours.close();
+
+        } catch (FileNotFoundException ex) {
+            System.out.println("Le fichier est introuvable.");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
+    
 
     /**
      Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer dans un fichier texte
