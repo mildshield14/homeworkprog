@@ -89,8 +89,7 @@ public class Client {
                 String com = "";
                 Boolean done = true;
 
-                System.out.println("What: ");
-
+                 System.out.println("Entrez le numéro correspondant à la session désirée:");
 
                 com = scanner.nextLine();
                 if (com.equals("1") || com.equals("2") || com.equals("3")) {
@@ -104,9 +103,16 @@ public class Client {
 
                     objectOutputStream.flush();
 
+                    System.out.println("1: Consulter les cours offerts pour une autre session \n" +
+                            "2: Inscription à un cours \n");
                     com = scanner.nextLine();
 
-                    if (com.equals("2")) {
+                    if (com.equals("1")) {
+                        com = "1";
+                        go= true;
+                    }
+
+                    else if (com.equals("2")) {
                         com = "2";
                         go = false;
                     }
