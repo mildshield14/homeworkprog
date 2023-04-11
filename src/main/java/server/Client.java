@@ -124,7 +124,6 @@ public class Client {
                 Object ListeDeCours = ois.readObject();
                 ois.close();
                 Courses.add(ListeDeCours);
-                System.out.println(ListeDeCours);
 
                 ArrayList<Course> Cours = new ArrayList<Course>();
                 ArrayList<String> leCours = (ArrayList) Courses.get(0);
@@ -138,7 +137,6 @@ public class Client {
                             }
                     Cours.add(new Course(separations.get(1), separations.get(0), separations.get(2)));
                     }
-                    System.out.println(Cours);
 
 
 //Test Course
