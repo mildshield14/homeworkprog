@@ -165,6 +165,8 @@ public class Client {
                 throw new RuntimeException(e);
             } catch (IOException e) {
                 throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
             }
         }
 
