@@ -118,7 +118,7 @@ public class Client {
                     }
 
                 }
-                
+                ArrayList<Object> Courses = new ArrayList<>();
                 FileInputStream fis = new FileInputStream("src/main/java/server/data/courses.txt");
                 ObjectInputStream ois = new ObjectInputStream(fis);
                 Object ListeDeCours = ois.readObject();
