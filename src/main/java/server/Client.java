@@ -89,9 +89,12 @@ public class Client {
                 String com = "";
                 Boolean done = true;
 
-                 System.out.println("Entrez le numéro correspondant à la session désirée:");
+                 System.out.println("*** Bienvenue au portail de cours de l'UDEM *** \n"
+                                    + "Veuillez choisir la session pour laquelle vous voulez consulter la liste de cours: \n"
+                                   + "1: Automne \n" + "2: Hiver \n" + "3: Ete");
 
                 com = scanner.nextLine();
+                System.out.println("> Choix :" + com);
                 if (com.equals("1") || com.equals("2") || com.equals("3")) {
                     try {
                         objectOutputStream.writeObject("CHARGER " + com);
@@ -106,7 +109,7 @@ public class Client {
                     System.out.println("1: Consulter les cours offerts pour une autre session \n" +
                             "2: Inscription à un cours \n");
                     com = scanner.nextLine();
-
+                    System.out.println("> Choix :" + com);
                     if (com.equals("1")) {
                         com = "1";
                         go= true;
