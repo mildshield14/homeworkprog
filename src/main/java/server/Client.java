@@ -114,24 +114,39 @@ public class Client {
                 }
                 
                 FileInputStream fis = new FileInputStream("src/main/java/server/data/courses.txt");
-                    ObjectInputStream ois = new ObjectInputStream(fis);
-                    Object ListeDeCours = ois.readObject();
-                    ois.close();
-                    Courses.add(ListeDeCours);
-                    System.out.println(ListeDeCours);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                Object ListeDeCours = ois.readObject();
+                ois.close();
+                Courses.add(ListeDeCours);
+                System.out.println(ListeDeCours);
+
+                ArrayList<Course> Cours = new ArrayList<Course>();
+                ArrayList<String> leCours = (ArrayList) Courses.get(0);
+
+                for (int i=0; i<leCours.size(); i++) {
+                    String aCourse = (String) leCours.get(i);
+                    String[] words = aCourse.split("\\s+");
+                    ArrayList<String> separations = new ArrayList<String>();
+                    for (String word : words) {
+                        separations.add(word);
+                            }
+                    Cours.add(new Course(separations.get(1), separations.get(0), separations.get(2)));
+                    }
+                    System.out.println(Cours);
+
 
 //Test Course
 
-                Course cour1 = new Course("Programmation1", "IFT1015", "Automne");
+                /*Course cour1 = new Course("Programmation1", "IFT1015", "Automne");
                 Course cour2 = new Course("Base_de_donnees", "IFT2256", "Hiver");
                 Course cour3 = new Course("Architecture_des_ordinateurs", "IFT1227", "Ete");
-                 ArrayList<Course> courseEn= new ArrayList<>();
+                ArrayList<Course> courseEn = new ArrayList<>();
 
 
                 courseEn.add(cour1);
                 courseEn.add(cour2);
-                courseEn.add(cour3);
-                setCourseEntry(courseEn);
+                courseEn.add(cour3);*/
+                setCourseEntry(Cours);
 
                 if (com.equals("2")) {
                     com = "INSCRIRE";
