@@ -125,7 +125,6 @@ public class Client {
                 FileInputStream fis = new FileInputStream("src/main/java/server/data/courses.txt");
                 ObjectInputStream ois = new ObjectInputStream(fis);
                 Object ListeDeCours = ois.readObject();
-                ois.flush();
                 ois.close();
                 Courses.add(ListeDeCours);
 
