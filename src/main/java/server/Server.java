@@ -99,13 +99,11 @@ public class Server {
             String unCours;
 
             ArrayList<String> lesCours = new ArrayList<String>();
-            String session = arg;
 
-            switch (session) {
+            switch (arg) {
 
                 case "1":
                     while ((unCours = lectureDuFichier.readLine()) != null) {
-                        lesCours.add(unCours);
                         if (unCours.contains("Automne")) {
                             lesCours.add(unCours);
                         }
@@ -114,7 +112,6 @@ public class Server {
 
                 case "2":
                     while ((unCours = lectureDuFichier.readLine()) != null) {
-                        lesCours.add(unCours);
                         if (unCours.contains("Hiver")) {
                             lesCours.add(unCours);
                         }
@@ -123,7 +120,6 @@ public class Server {
 
                 case "3":
                     while ((unCours = lectureDuFichier.readLine()) != null) {
-                        lesCours.add(unCours);
                         if (unCours.contains("Ete")) {
                             lesCours.add(unCours);
                         }
@@ -134,7 +130,7 @@ public class Server {
                     throw new IllegalArgumentException("Session invalide.");
 
             }
-            FileOutputStream listeCours = new FileOutputStream("Cours");
+            FileOutputStream listeCours = new FileOutputStream("src/main/java/server/data/courses.txt");
             ObjectOutputStream Cours = new ObjectOutputStream(listeCours);
 
             Cours.writeObject(lesCours);
