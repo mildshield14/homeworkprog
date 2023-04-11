@@ -204,19 +204,19 @@ public class Client {
 
             if (dev3!=true) {
 
-                System.out.println("Enter your first name: ");
+                System.out.println("Veuillez saisir votre prénom: ");
                 String firstName = scanner.nextLine();
 
-                System.out.println("Enter your last name: ");
+                System.out.println("Veuillez saisir votre nom: ");
                 String lastName = scanner.nextLine();
 
-                System.out.println("Enter your email: ");
+                System.out.println("Veuillez saisir votre email: ");
                 String email = scanner.nextLine();
 
-                System.out.println("Enter your matricule: ");
+                System.out.println("Veuillez saisir votre matricule: ");
                 String matricule = scanner.nextLine();
 
-                System.out.println("Enter your course name: ");
+                System.out.println("Veuillez saisir le code du cours: ");
                 String courseName = scanner.nextLine();
 
 
@@ -242,7 +242,7 @@ public class Client {
                     System.out.println(msg);
 
                 } else {
-                    System.out.println("Unfortunately this course is not available");
+                    System.out.println("Ce cours n'est malheureusement pas disponible.");
                     objectOutputStream1.writeObject("ERROR");
                     objectOutputStream1.flush();
                 }
@@ -280,7 +280,7 @@ public class Client {
 
                 } else {
                     message=("");
-                    System.out.println("Unfortunately this course is not available");
+                    System.out.println("Ce cours n'est malheureusement pas disponible.");
                     objectOutputStream.writeObject("ERROR");
                     objectOutputStream.flush();
                 }
