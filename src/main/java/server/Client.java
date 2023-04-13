@@ -154,11 +154,13 @@ public class Client {
                     ArrayList<Course> leCours =  (ArrayList<Course>) objectInputStream.readObject();
 
                     setCourseEntry(leCours);
-
-                    System.out.println(leCours);
+                    
+                    for (int i=0;i<leCours.size();i++){
+                        System.out.println(leCours.get(i).getCode() + "     " + leCours.get(i).getName());
+                    }
 
                     System.out.println("1: Consulter les cours offerts pour une autre session \n" +
-                            "2: Inscription à un cours \n");
+                            "2: Inscription à un cours ");
 
                     System.out.print("> Choix :");
                     com= scanner.nextLine();
