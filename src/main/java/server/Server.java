@@ -1,6 +1,7 @@
 package server;
 
 import javafx.util.Pair;
+import server.models.Course;
 import server.models.RegistrationForm;
 
 import java.io.*;
@@ -91,7 +92,7 @@ public class Server {
      */
     public void handleLoadCourses(String arg) {
         // TODO: implémenter cette méthode
-        
+
         String filePath = "src/main/java/server/data/cours.txt";
         try {
             FileReader listeDesCours = new FileReader(filePath);
@@ -130,12 +131,25 @@ public class Server {
                     throw new IllegalArgumentException("Session invalide.");
 
             }
-            FileOutputStream listeCours = new FileOutputStream("src/main/java/server/data/courses.txt");
-            ObjectOutputStream Cours = new ObjectOutputStream(listeCours);
+listeDesCours.close();
+        lectureDuFichier.close();
+        ArrayList<Course> Cours = new ArrayList<Course>();
+            for (int i=0; i<lesCours.size(); i++) {
+                String aCourse = (String) lesCours.get(i);
+                String[] words = aCourse.split("\\s+");
+                ArrayList<String> separations = new ArrayList<String>();
+                for (String word : words) {
+                    separations.add(word);
+                }
+                Cours.add(new Course(separations.get(1), separations.get(0), separations.get(2)));
+            }
 
-            Cours.writeObject(lesCours);
+            System.out.println(Cours+"BEFORE PERHAPS");
+            objectOutputStream.writeObject(Cours);
+            System.out.println(Cours);
+            objectOutputStream.flush();
 
-            Cours.close();
+
 
         } catch (FileNotFoundException ex) {
             System.out.println("Le fichier est introuvable.");
@@ -143,7 +157,7 @@ public class Server {
             throw new RuntimeException(e);
         }
     }
-    
+
 
     /**
      Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer dans un fichier texte
@@ -159,35 +173,34 @@ public class Server {
         BufferedReader reader = null;
 
 
-            FileWriter fw = null;
-            BufferedWriter writer = null;
+        FileWriter fw = null;
+        BufferedWriter writer = null;
 
 
-                fw = new FileWriter("src/main/java/server/data/inscription.txt", true);
-                writer = new BufferedWriter(fw);
-                String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
+        fw = new FileWriter("src/main/java/server/data/inscription.txt", true);
+        writer = new BufferedWriter(fw);
+        String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
 
-                writer.append("\n\n" + s);
+        writer.append("\n\n" + s);
 
-                String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
-                System.out.println(msg);
+        String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
+        System.out.println(msg);
 
 
-                // Close both the writer and the file writer, even if an exception was thrown
-                if (writer != null) {
-                    try {
-                        writer.close();
-                    } catch (IOException e) {
-                        // Handle the exception
-                    }
-                }
-                if (fw != null) {
-                    try {
-                        fw.close();
-                    } catch (IOException e) {
-                        // Handle the exception
-                    }
-                }
+        // Close both the writer and the file writer, even if an exception was thrown
+        if (writer != null) {
+            try {
+                writer.close();
+            } catch (IOException e) {
+                // Handle the exception
             }
+        }
+        if (fw != null) {
+            try {
+                fw.close();
+            } catch (IOException e) {
+                // Handle the exception
+            }
+        }
+    }
 }
-
