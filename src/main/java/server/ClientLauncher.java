@@ -1,7 +1,6 @@
 package server;
 
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ClientLauncher {
@@ -13,7 +12,8 @@ public class ClientLauncher {
 
 
 public static void closeSocket() throws IOException {
-        socket.close();
+    if (socket != null && !socket.isClosed()) {
+        socket.close();}
 }
     public static Socket getSocket() {
         return socket;
@@ -31,9 +31,6 @@ public static void closeSocket() throws IOException {
         }
     }
     public static void setConnection() throws IOException {
-socket = new Socket(address, (port));
-
-
-
+        socket = new Socket(address, (port));
     }
 }
