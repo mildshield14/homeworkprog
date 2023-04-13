@@ -168,8 +168,8 @@ public class Client {
 
                     System.out.println("1: Consulter les cours offerts pour une autre session \n" +
                             "2: Inscription à un cours \n");
-                    com = scanner.nextLine();
-                    System.out.print("> Choix :" + com);
+                     System.out.print("> Choix :");
+                    com= scanner.nextLine();
 
                     Pattern choix2 = Pattern.compile("[1-2]");
                     Matcher choixInscription = choix2.matcher(com);
