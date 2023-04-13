@@ -10,10 +10,13 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class Client {
     public static ArrayList<Course> courseEntry;
     public static String message;
-public static Boolean ins;
+    public static Boolean ins;
     public static Socket client;
 
     private static ObjectInputStream objectInputStream;
@@ -51,15 +54,15 @@ public static Boolean ins;
         objectOutputStream.flush();
 
 
-            run();
+        run();
 
         finishTransfer();
 
     }
 
     public static void finishTransfer() throws IOException {
-client.close();
-ClientLauncher.closeSocket();
+        client.close();
+        ClientLauncher.closeSocket();
         System.out.println("FINISH");
         objectInputStream.close();
 
@@ -74,7 +77,7 @@ ClientLauncher.closeSocket();
             Boolean done = true;
 
             com="INSCRIRE";
-justNeedSocket();
+            justNeedSocket();
             inscrire(true, com, done, entry);
             scanner.close();
 
@@ -130,6 +133,13 @@ justNeedSocket();
 
                 com = scanner.nextLine();
 
+                Pattern choix1 = Pattern.compile("[1-3]");
+                Matcher choixSession = choix1.matcher(com);
+                boolean validSession = choixSession.find();
+                if (!validSession) {
+                    throw new IllegalArgumentException("Erreur. Session invalide.");
+                }
+
                 if (com.equals("1") || com.equals("2") || com.equals("3")) {
                     try {
 
@@ -160,6 +170,14 @@ justNeedSocket();
                             "2: Inscription à un cours \n");
                     com = scanner.nextLine();
                     System.out.print("> Choix :" + com);
+
+                    Pattern choix2 = Pattern.compile("[1-2]");
+                    Matcher choixInscription = choix2.matcher(com);
+                    boolean validInscription = choixInscription.find();
+                    if (!validInscription) {
+                        throw new IllegalArgumentException("Erreur. Choix invalide.");
+                    }
+
                     if (com.equals("1")) {
                         com = "1";
                         go= true;
@@ -203,7 +221,7 @@ justNeedSocket();
 
         // create a socket on the specified port+ object out and in
 
-       justNeedSocket();
+        justNeedSocket();
 
         try {
             objectOutputStream.writeObject("CHARGER "+com);
@@ -221,14 +239,14 @@ justNeedSocket();
         setCourseEntry(Cours);
 
         System.out.println(Cours);
-finishTransfer();
+        finishTransfer();
         return arraylist();
 
 
     }
 
     public static void inscrire(Boolean dev3,   String com, Boolean done, ArrayList entry) throws IOException {
-ins=false;
+        ins=false;
         System.out.println("ANd here?");
 
         try {
@@ -245,21 +263,51 @@ ins=false;
         while (done) {
 
             if (dev3!=true) {
-Scanner scanner = new Scanner(System.in);
+                Scanner scanner = new Scanner(System.in);
                 System.out.println("Veuillez saisir votre prénom: ");
                 String firstName = scanner.nextLine();
+                Pattern nums = Pattern.compile("\\d|^$");
+                Matcher prenom = nums.matcher(firstName);
+                boolean numsInPrenom = prenom.find();
+                if (numsInPrenom) {
+                    throw new IllegalArgumentException("Erreur. Prénom invalide.");
+                }
 
                 System.out.println("Veuillez saisir votre nom: ");
                 String lastName = scanner.nextLine();
+                Matcher nom = nums.matcher(lastName);
+                boolean numsInNom = nom.find();
+                if (numsInNom) {
+                    throw new IllegalArgumentException("Erreur. Nom invalide.");
+                }
 
                 System.out.println("Veuillez saisir votre email: ");
                 String email = scanner.nextLine();
+                Pattern mail = Pattern.compile(".+[^.]@.+[.][a-z][a-z][a-z]?$");
+                Matcher courriel = mail.matcher(email);
+                boolean correctEmail = courriel.find();
+                if (!correctEmail) {
+                    throw new IllegalArgumentException("Erreur. E-mail invalide.");
+                }
 
                 System.out.println("Veuillez saisir votre matricule: ");
                 String matricule = scanner.nextLine();
+                Pattern mat = Pattern.compile("[0-9]{8}");
+                Matcher matriculeEtu = mat.matcher(matricule);
+                boolean correctMatricule = matriculeEtu.find();
+                if (!correctMatricule) {
+                    throw new IllegalArgumentException("Erreur. Matricule invalide.");
+                }
 
                 System.out.println("Veuillez saisir le code du cours: ");
                 String courseName = scanner.nextLine();
+                Pattern code = Pattern.compile("^[a-zA-Z]{3}[0-9]{4}$");
+                Matcher codeCours = code.matcher(courseName);
+                boolean correctCode = codeCours.find();
+                if (!correctCode) {
+                    throw new IllegalArgumentException("Erreur. Le code de cours entré est invalide.");
+                }
+
 
 
                 ArrayList<Course> courseEn =arraylist();
