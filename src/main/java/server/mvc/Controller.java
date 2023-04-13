@@ -1,12 +1,11 @@
 package server.mvc;
 
-import javafx.scene.control.Alert;
-import javafx.scene.control.TextField;
+import server.models.Course;
+import java.io.IOException;
+import java.util.ArrayList;
 
 /*
  * Cette classe lie le modele avec la vue.
- * À noter qu'elle ne connaît ni de detailles d'implementation
- * du comportement, ni de detailles de structuration du GUI.
  *
  */
 public class Controller {
@@ -14,55 +13,91 @@ public class Controller {
     private Model modele;
     private Vue vue;
 
+
+    public Vue getVue() {
+        return vue;
+    }
+
     public Controller(Model m, Vue v) {
         this.modele = m;
         this.vue = v;
-
-        /*
-         * La definition du comportement de chaque handler
-         * est mise dans sa propre méthode auxiliaire. Il pourrait être même
-         * dans sa propre classe entière: ne niveau de decouplage
-         * depend de la complexité de l'application
-         */
-
+        
+        //detecte quand on clique sur charger; verifie si une sessiona  ete selectionnee        
         this.vue.getChargerButton().setOnAction((action) -> {
-            this.charger();
+            try {
+                ArrayList<Course> en= new ArrayList<Course>();
+                if (this.vue.getSession()!=""){
+                    
+                    String com=this.vue.getSession();
+                    this.modele.charger(com);
+                    
+                    en=this.modele.getEntries();
+                    this.vue.setEntries(en);
+                    
+                    
+                    this.vue.displayCours(en);}
+                
+                else{
+                    this.modele.setError("You need to load the courses first... Choose a session");
+                    this.vue.displayError(this.modele.getError());
+                }
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+
         });
 
         this.vue.getEnvoyerButton().setOnAction((action) -> {
             this.envoyer();
-            String value1=vue.getTextBox1().getText();
-            String value2=vue.getTextBox2().getText();
-            String value3=vue.getTextBox3().getText();
-            String value4=vue.getTextBox4().getText();
-            String value5=vue.getTextBox5().getText();
+            String value1=vue.getprenom().getText();
+            String value2=vue.getnom().getText();
+            String value3=vue.getemail().getText();
+            String value4=vue.getmatricule().getText();
+            String code=modele.getCode();
 
-            modele.updateData(value1,value2,value3,value4,value5);
+            modele.updateData(value1,value2,value3,value4,code);
 
+        });
+
+        this.vue.getTable().setOnMouseClicked(event -> {
+            if (event.getClickCount() == 1) { // Des qu'on clique sur un cell su tableau; automatiquement on le detecte et on le stocke
+
+                Course selectedCourse = (Course) this.vue.getTable().getSelectionModel().getSelectedItem();
+                
+                if (selectedCourse != null) {
+                    String code = selectedCourse.getCode();
+                    this.modele.setCode(code);
+                    
+                    String name = selectedCourse.getName();
+                    String session = selectedCourse.getSession();
+                    
+                    System.out.println("Selected Course: " + code + " " + name + " " + session);
+                }
+            }
         });
 
 
 
     }
 
-    private void charger() {
-        this.modele.charger();
 
-    }
-
-    private void envoyer() {
-        String value1 = vue.getTextBox1().getText();
-        String value2 = vue.getTextBox2().getText();
-        String value3 = vue.getTextBox3().getText();
-        String value4 = vue.getTextBox4().getText();
-        String value5 = vue.getTextBox5().getText();
-
+private void envoyer() {
+        String value1 = vue.getprenom().getText();
+        String value2 = vue.getnom().getText();
+        String value3 = vue.getemail().getText();
+        String value4 = vue.getmatricule().getText();
+        String value5 = modele.getCode();
         modele.updateData(new String(value1), new String(value2), new String(value3), new String(value4), new String(value5));
 
         this.modele.envoyer();
 
-        if (this.modele.getError()!="")
-        {        this.vue.displayError(this.modele.getError());}
+        if (this.modele.getError()!=""){
+            this.vue.displayError(this.modele.getError());}else{
+            modele.setCode("");
+        }
 
         if (this.modele.getInfoError()!=""){
             this.vue.displayInfoError(this.modele.getInfoError());
@@ -70,35 +105,5 @@ public class Controller {
 
     }
 
-    private void textBox1(){
-        this.modele.getValue1();
-
-    }
-    private void textBox4(){
-        this.modele.getValue4();
-
-
-    }
-    private void textBox5(){
-        this.modele.getValue5();
-
-
-    }
-
-    private void textBox2(){
-        this.modele.getValue2();
-
-    }
-    private void textBox3(){
-        this.modele.getValue3();
-
-    }
-
-private void error(Alert a){
-    String errorMessage = this.modele.getError();
-    if (!errorMessage.isEmpty()) {
-        this.vue.displayError(errorMessage);
-    }
-}
-
+    
 }
