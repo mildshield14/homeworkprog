@@ -4,6 +4,8 @@ import server.models.Course;
 import server.models.RegistrationForm;
 
 import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -11,36 +13,72 @@ import java.util.Scanner;
 public class Client {
     public static ArrayList<Course> courseEntry;
     public static String message;
+public static Boolean ins;
+    public static Socket client;
+
+    private static ObjectInputStream objectInputStream;
+    private static ObjectOutputStream objectOutputStream;
+
+    public static void justNeedSocket() throws IOException {
+
+        if (client != null && !client.isClosed()) {
+            objectInputStream.close();
+            objectOutputStream.close();
+            client.close();
+        }
+        if (client == null || client.isClosed()) {
+            client = new Socket("localhost", 1337);
+
+        }
+        objectOutputStream = new ObjectOutputStream(client.getOutputStream());
+
+        objectInputStream = new ObjectInputStream(client.getInputStream());
+
+
+    }
+
+    public static void prepTransfer() throws IOException {
+
+        if (client == null || client.isClosed()) {
+            client = new Socket("localhost", 1337);
+
+        }
+
+        objectOutputStream = new ObjectOutputStream(client.getOutputStream());
+
+        objectInputStream = new ObjectInputStream(client.getInputStream());
+
+        objectOutputStream.flush();
+
+
+            run();
+
+        finishTransfer();
+
+    }
+
+    public static void finishTransfer() throws IOException {
+client.close();
+ClientLauncher.closeSocket();
+        System.out.println("FINISH");
+        objectInputStream.close();
+
+        objectOutputStream.close();
+    }
     public static String startGUI(ArrayList entry){
         try {
 
-            int port = 1337;
+            Scanner scanner = new Scanner(System.in); //to pass to procedure// will be null
 
-            // create a socket on the specified port
-            Socket socket = new Socket("localhost", port);
-
-
-            System.out.println("Connected to server on port " + port);
-            OutputStreamWriter os = new OutputStreamWriter(
-                    socket.getOutputStream()
-            );
-
-
-            BufferedWriter writer = new BufferedWriter(os);
-
-            Scanner scanner = new Scanner(System.in);
-
-
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             String com="";
             Boolean done = true;
 
-                com="INSCRIRE";
+            com="INSCRIRE";
+justNeedSocket();
+            inscrire(true, com, done, entry);
+            scanner.close();
 
-
-                inscrire(true,writer, socket, scanner, objectOutputStream, com, done, entry);
-
-         return GUIMessage();
+            return GUIMessage();
 
         } catch (UnknownHostException e) {
             throw new RuntimeException(e);
@@ -55,48 +93,46 @@ public class Client {
         return message;
     }
 
+
     public static ArrayList arraylist (){return courseEntry;}
 
-    public static void setCourseEntry(ArrayList<Course> courseEntry) {
-        Client.courseEntry = courseEntry;
+    public static void setCourseEntry(ArrayList<Course> courseEntry1) {
+        courseEntry = courseEntry1;
     }
 
-    public static void main(String[] args) {
+
+    public Client(int port) throws IOException {
+        ClientLauncher.setConnection();
+
+        this.client = ClientLauncher.getSocket();
+
+
+    }
+
+    public static void run() {
 
         boolean go=true;
 
         while (go==true) {
             try {
 
-                int port = 1337;
-
-                // create a socket on the specified port
-                Socket socket = new Socket("localhost", port);
-
-
-                System.out.println("Connected to server on port " + port);
-                OutputStreamWriter os = new OutputStreamWriter(
-                        socket.getOutputStream()
-                );
-
-
-                BufferedWriter writer = new BufferedWriter(os);
 
                 Scanner scanner = new Scanner(System.in);
 
-
-                ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
                 String com = "";
                 Boolean done = true;
 
-                 System.out.println("*** Bienvenue au portail de cours de l'UDEM *** \n"
-                                    + "Veuillez choisir la session pour laquelle vous voulez consulter la liste de cours: \n"
-                                   + "1: Automne \n" + "2: Hiver \n" + "3: Ete");
+                System.out.println("*** Bienvenue au portail de cours de l'UDEM *** \n"
+                        + "Veuillez choisir la session pour laquelle vous voulez consulter la liste de cours: \n"
+                        + "1: Automne \n" + "2: Hiver \n" + "3: Ete");
+
+                System.out.print("> Choix: ");
 
                 com = scanner.nextLine();
-                System.out.println("> Choix :" + com);
+
                 if (com.equals("1") || com.equals("2") || com.equals("3")) {
                     try {
+
                         objectOutputStream.writeObject("CHARGER " + com);
                     } catch (IOException e) {
                         // Handle the exception
@@ -106,61 +142,51 @@ public class Client {
 
                     objectOutputStream.flush();
 
+
+
+                    ArrayList<Course> leCours =  (ArrayList<Course>) objectInputStream.readObject();
+
+                    System.out.println(leCours+"IS IT ?");
+
+                    System.out.println("CHECKING");
+
+                    setCourseEntry(leCours);
+
+
+
+                    System.out.println(leCours);
+
                     System.out.println("1: Consulter les cours offerts pour une autre session \n" +
                             "2: Inscription à un cours \n");
                     com = scanner.nextLine();
-                    System.out.println("> Choix :" + com);
+                    System.out.print("> Choix :" + com);
                     if (com.equals("1")) {
                         com = "1";
                         go= true;
+                        finishTransfer();
+                        prepTransfer();
                     }
 
                     else if (com.equals("2")) {
                         com = "2";
                         go = false;
                     }
+                    System.out.println(leCours);
 
                 }
-                ArrayList<Object> Courses = new ArrayList<>();
-                FileInputStream fis = new FileInputStream("src/main/java/server/data/courses.txt");
-                ObjectInputStream ois = new ObjectInputStream(fis);
-                Object ListeDeCours = ois.readObject();
-                ois.close();
-                Courses.add(ListeDeCours);
-
-                ArrayList<Course> Cours = new ArrayList<Course>();
-                ArrayList<String> leCours = (ArrayList) Courses.get(0);
-
-                for (int i=0; i<leCours.size(); i++) {
-                    String aCourse = (String) leCours.get(i);
-                    String[] words = aCourse.split("\\s+");
-                    ArrayList<String> separations = new ArrayList<String>();
-                    for (String word : words) {
-                        separations.add(word);
-                            }
-                    Cours.add(new Course(separations.get(1), separations.get(0), separations.get(2)));
-                    }
 
 
-//Test Course
 
-                /*Course cour1 = new Course("Programmation1", "IFT1015", "Automne");
-                Course cour2 = new Course("Base_de_donnees", "IFT2256", "Hiver");
-                Course cour3 = new Course("Architecture_des_ordinateurs", "IFT1227", "Ete");
-                ArrayList<Course> courseEn = new ArrayList<>();
-
-
-                courseEn.add(cour1);
-                courseEn.add(cour2);
-                courseEn.add(cour3);*/
-                setCourseEntry(Cours);
 
                 if (com.equals("2")) {
                     com = "INSCRIRE";
+                    System.out.println("DOES IT GO HERE");
                     ArrayList<String> entry = new ArrayList<>(); //Utilisation pour le GUI; mais ici il sera null
-                    inscrire(false, writer, socket, scanner, objectOutputStream, com, done, entry);
+
+                    inscrire(false,   com, done, entry);
 
                 }
+
 
             } catch (UnknownHostException e) {
                 throw new RuntimeException(e);
@@ -172,28 +198,41 @@ public class Client {
         }
 
     }
-
-    public static void inscrire(Boolean dev3, BufferedWriter writer, Socket socket, Scanner scanner, ObjectOutputStream objectOutputStream, String com, Boolean done, ArrayList entry) throws IOException {
-        int port1 = 1337;
-
-        // create a socket on the specified port
-        Socket socket1 = new Socket("localhost", port1);
+    public static ArrayList<Course> charger1( String com) throws IOException, ClassNotFoundException {
 
 
-        System.out.println("Connected to server on port " + port1);
+        // create a socket on the specified port+ object out and in
 
-
-        OutputStreamWriter os = new OutputStreamWriter(
-                socket1.getOutputStream()
-        );
-
-
-
-        ObjectOutputStream objectOutputStream1 = new ObjectOutputStream(socket1.getOutputStream());
-
+       justNeedSocket();
 
         try {
-            objectOutputStream1.writeObject("INSCRIRE");
+            objectOutputStream.writeObject("CHARGER "+com);
+        } catch (IOException e) {
+            // Handle the exception
+            System.out.println("CHARGER");
+            e.printStackTrace();
+        }
+
+
+        objectOutputStream.flush();
+
+        ArrayList<Course> Cours =  (ArrayList<Course>) objectInputStream.readObject();
+
+        setCourseEntry(Cours);
+
+        System.out.println(Cours);
+finishTransfer();
+        return arraylist();
+
+
+    }
+
+    public static void inscrire(Boolean dev3,   String com, Boolean done, ArrayList entry) throws IOException {
+ins=false;
+        System.out.println("ANd here?");
+
+        try {
+            objectOutputStream.writeObject("INSCRIRE");
         } catch (IOException e) {
             // Handle the exception
             System.out.println("INSCRIRE");
@@ -201,12 +240,12 @@ public class Client {
         }
 
 
-        objectOutputStream1.flush();
+        objectOutputStream.flush();
 
         while (done) {
 
             if (dev3!=true) {
-
+Scanner scanner = new Scanner(System.in);
                 System.out.println("Veuillez saisir votre prénom: ");
                 String firstName = scanner.nextLine();
 
@@ -238,19 +277,27 @@ public class Client {
                 }
                 if (courInfo.getName() != "") {
                     RegistrationForm userRegistration = new RegistrationForm(firstName, lastName, email, matricule, courInfo);
-                    objectOutputStream1.writeObject(userRegistration);
-                    objectOutputStream1.flush();
-
+                    System.out.println("HI");
+                    justNeedSocket();
+                    System.out.println("CHECKING");
+                    objectOutputStream.writeObject(userRegistration);
+                    System.out.println("YO");
+                    objectOutputStream.flush();
+                    finishTransfer();
+                    System.out.println("HELLO");
                     String msg = ("Félicitations! Inscription réussie de " + userRegistration.getPrenom() + " au cours " + userRegistration.getCourse().getCode());
                     System.out.println(msg);
+                    finishTransfer();
 
                 } else {
                     System.out.println("Ce cours n'est malheureusement pas disponible.");
-                    objectOutputStream1.writeObject("ERROR");
-                    objectOutputStream1.flush();
+                    justNeedSocket();
+                    objectOutputStream.writeObject("ERROR");
+                    objectOutputStream.flush();
+                    finishTransfer();
                 }
-
             }else{
+                justNeedSocket();
                 String prenomGUI=entry.get(0).toString();
                 String nomGUI=entry.get(1).toString();
                 String emailGUI=entry.get(2).toString();
@@ -280,26 +327,25 @@ public class Client {
 
                     message=(msg);
                     System.out.println(msg);
-
+                    finishTransfer();
                 } else {
                     message=("");
                     System.out.println("Ce cours n'est malheureusement pas disponible.");
                     objectOutputStream.writeObject("ERROR");
                     objectOutputStream.flush();
+                    finishTransfer();
                 }
 
             }
 
 
-                done = false;
+            done = false;
 
-            writer.close();
+
+
+
         }
+        finishTransfer();
 
-        objectOutputStream.close();
-
-        socket.close();
     }
 }
-
-
