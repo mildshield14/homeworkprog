@@ -1,8 +1,19 @@
 package server;
 
+/**
+ * Lance le serveur
+ */
 public class ServerLauncher {
+
+    /**
+     * Le port utilisé par le serveur
+     */
     public final static int PORT = 1337;
 
+    /**
+     * Démarre le serveur
+     * @param args port désiré
+     */
     public static void main(String[] args) {
         Server server;
         try {
