@@ -4,6 +4,8 @@ import server.models.Course;
 import server.models.RegistrationForm;
 
 import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
@@ -11,34 +13,33 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Client {
+/**
+ * S'occupe des opérations côté client
+ */
+public class Client extends Thread{
+
+    /**
+     * Met la liste de cours recue dans un ArrayList
+     */
     public static ArrayList<Course> courseEntry;
+
+    /**
+     * Message de confirmation ou non après inscription
+     */
     public static String message;
-    public static Boolean ins;
+
+    /**
+     * Socket du client
+     */
     public static Socket client;
 
     private static ObjectInputStream objectInputStream;
     private static ObjectOutputStream objectOutputStream;
 
-    public static ArrayList arraylist(){return courseEntry;}
-
-    public static String GUIMessage(){
-        return message;
-    }
-
-    public static void setCourseEntry(ArrayList<Course> courseEntry1) {
-        courseEntry = courseEntry1;
-    }
-
-    public Client(int port) throws IOException {
-
-        ClientLauncher.setConnection();
-
-        this.client = ClientLauncher.getSocket();
-
-    }
-
-    // on utilisera cela surtout pour le GUI car on ne veut pas passer par les entrees de run();
+    /**
+     *
+     * @throws IOException
+     */
     public static void justNeedSocket() throws IOException {
 
         if (client != null && !client.isClosed()) {
@@ -57,12 +58,15 @@ public class Client {
 
     }
 
-    // Ceci permet de commencer les entrees en preparant la connection puis lancant run();
-    //run() etant le module qui fait explicitement les entrees.
-    public static void prepTransfer() throws IOException {
+    /**
+     * Connecte le client
+     * @throws IOException
+     */
+    public void prepTransfer() throws IOException {
 
         if (client == null || client.isClosed()) {
             client = new Socket("localhost", 1337);
+
         }
 
         objectOutputStream = new ObjectOutputStream(client.getOutputStream());
@@ -71,34 +75,42 @@ public class Client {
 
         objectOutputStream.flush();
 
+
         run();
 
         finishTransfer();
 
     }
 
-    //Ceci permet de deconnecter le client comme le veut l'enonce
+    /**
+     * Met fin aux echanges du client via le socket
+     * @throws IOException
+     */
     public static void finishTransfer() throws IOException {
         client.close();
         ClientLauncher.closeSocket();
-
         objectInputStream.close();
+
         objectOutputStream.close();
     }
 
-    // Permet l'inscription du GUI
+    /**
+     * Permet de lancer le GUI
+     * @param entry
+     * @return
+     */
     public static String startGUI(ArrayList entry){
         try {
 
-            String com="";  // sera null; juste pour permettre une methode pour le CLI/GUI
+            Scanner scanner = new Scanner(System.in); //to pass to procedure// will be null
 
-            Boolean done = true;  //signifie GUI = true; et par la meme occasion CLI=false
+            String com="";
+            Boolean done = true;
 
             com="INSCRIRE";
-
-            justNeedSocket();  //ouverture de la connection
-
-            inscrire(true, com, done, entry);  //Entrees
+            justNeedSocket();
+            inscrire(true, com, done, entry);
+            scanner.close();
 
             return GUIMessage();
 
@@ -108,16 +120,57 @@ public class Client {
             throw new RuntimeException(e);
         }
 
+
+
     }
 
-   //permet de faire les entrees pour charger les cours (utilisation plutot CLI)
-    public static void run() {
+    /**
+     * Retourne le message de confirmation sur le GUI
+     * @return
+     */
+    public static String GUIMessage(){
+        return message;
+    }
+
+
+    /**
+     * Retourne la liste des cours
+     * @return
+     */
+    public static ArrayList arraylist (){return courseEntry;}
+
+    /**
+     * Crée une ArrayList qui contiendra les données du GUI
+     * @param courseEntry1
+     */
+    public static void setCourseEntry(ArrayList<Course> courseEntry1) {
+        courseEntry = courseEntry1;
+    }
+
+
+    /**
+     *
+     * @param port
+     * @throws IOException
+     */
+    public Client(int port) throws IOException {
+        ClientLauncher.setConnection();
+
+        this.client = ClientLauncher.getSocket();
+
+
+    }
+
+    /**
+     *
+     */
+    public void run() {
 
         boolean go=true;
 
         while (go==true) {
-
             try {
+
 
                 Scanner scanner = new Scanner(System.in);
 
@@ -132,7 +185,6 @@ public class Client {
 
                 com = scanner.nextLine();
 
-                //Possibilites de 1 ou 2 ou 3 uniquement; validation ici
                 Pattern choix1 = Pattern.compile("[1-3]");
                 Matcher choixSession = choix1.matcher(com);
                 boolean validSession = choixSession.find();
@@ -142,6 +194,7 @@ public class Client {
 
                 if (com.equals("1") || com.equals("2") || com.equals("3")) {
                     try {
+
                         objectOutputStream.writeObject("CHARGER " + com);
                     } catch (IOException e) {
                         // Handle the exception
@@ -151,21 +204,19 @@ public class Client {
 
                     objectOutputStream.flush();
 
+
+
                     ArrayList<Course> leCours =  (ArrayList<Course>) objectInputStream.readObject();
 
+                    System.out.println(leCours);
                     setCourseEntry(leCours);
-                    
-                    for (int i=0;i<leCours.size();i++){
-                        System.out.println(leCours.get(i).getCode() + "     " + leCours.get(i).getName());
-                    }
+
 
                     System.out.println("1: Consulter les cours offerts pour une autre session \n" +
-                            "2: Inscription à un cours ");
+                            "2: Inscription à un cours \n");
+                    com = scanner.nextLine();
+                    System.out.print("> Choix :" + com);
 
-                    System.out.print("> Choix :");
-                    com= scanner.nextLine();
-
-                    //Possibilites de 1 ou 2 uniquement; validation ici
                     Pattern choix2 = Pattern.compile("[1-2]");
                     Matcher choixInscription = choix2.matcher(com);
                     boolean validInscription = choixInscription.find();
@@ -173,7 +224,6 @@ public class Client {
                         throw new IllegalArgumentException("Erreur. Choix invalide.");
                     }
 
-                    // On veut retourner au menu precedent ici; donc choisir la session a nouveau
                     if (com.equals("1")) {
                         com = "1";
                         go= true;
@@ -181,20 +231,19 @@ public class Client {
                         prepTransfer();
                     }
 
-                    //On veut passer a l'inscription
                     else if (com.equals("2")) {
                         com = "2";
                         go = false;
                     }
-
+                    System.out.println(leCours);
 
                 }
 
-                //INSCRIPTION; on appelle les methodes requises
+
+
+
                 if (com.equals("2")) {
-
                     com = "INSCRIRE";
-
                     ArrayList<String> entry = new ArrayList<>(); //Utilisation pour le GUI; mais ici il sera null
 
                     inscrire(false,   com, done, entry);
@@ -212,10 +261,20 @@ public class Client {
         }
 
     }
+
+
+    /**
+     *
+     * @param com
+     * @return
+     * @throws IOException
+     * @throws ClassNotFoundException
+     */
     public static ArrayList<Course> charger1( String com) throws IOException, ClassNotFoundException {
 
 
-        // on cree la connection
+        // create a socket on the specified port+ object out and in
+
         justNeedSocket();
 
         try {
@@ -226,42 +285,49 @@ public class Client {
             e.printStackTrace();
         }
 
+
         objectOutputStream.flush();
 
         ArrayList<Course> Cours =  (ArrayList<Course>) objectInputStream.readObject();
 
         setCourseEntry(Cours);
 
+        System.out.println(Cours);
         finishTransfer();
-
         return arraylist();
 
 
     }
 
-
-    //methode qui permet inscriptin CLI et GUI
+    /**
+     *
+     * @param dev3
+     * @param com
+     * @param done
+     * @param entry
+     * @throws IOException
+     */
     public static void inscrire(Boolean dev3,   String com, Boolean done, ArrayList entry) throws IOException {
 
         try {
             objectOutputStream.writeObject("INSCRIRE");
         } catch (IOException e) {
             // Handle the exception
-            System.out.println("probleme avec oos");
+            System.out.println("INSCRIRE");
             e.printStackTrace();
         }
+
 
         objectOutputStream.flush();
 
         while (done) {
 
             if (dev3!=true) {
-                Scanner scanner = new Scanner(System.in);
 
+                //On lit la réponse à chaque champ et on verifie si l'utilisateur a respecté le format demandé
+                Scanner scanner = new Scanner(System.in);
                 System.out.println("Veuillez saisir votre prénom: ");
                 String firstName = scanner.nextLine();
-
-                //Validations
                 Pattern nums = Pattern.compile("\\d|^$");
                 Matcher prenom = nums.matcher(firstName);
                 boolean numsInPrenom = prenom.find();
@@ -269,22 +335,16 @@ public class Client {
                     throw new IllegalArgumentException("Erreur. Prénom invalide.");
                 }
 
-
                 System.out.println("Veuillez saisir votre nom: ");
                 String lastName = scanner.nextLine();
-
-                //Validations
                 Matcher nom = nums.matcher(lastName);
                 boolean numsInNom = nom.find();
                 if (numsInNom) {
                     throw new IllegalArgumentException("Erreur. Nom invalide.");
                 }
 
-
                 System.out.println("Veuillez saisir votre email: ");
                 String email = scanner.nextLine();
-
-                //Validations
                 Pattern mail = Pattern.compile(".+[^.]@.+[.][a-z][a-z][a-z]?$");
                 Matcher courriel = mail.matcher(email);
                 boolean correctEmail = courriel.find();
@@ -292,23 +352,17 @@ public class Client {
                     throw new IllegalArgumentException("Erreur. E-mail invalide.");
                 }
 
-
                 System.out.println("Veuillez saisir votre matricule: ");
                 String matricule = scanner.nextLine();
-
-                //Validations
-                Pattern mat = Pattern.compile("[0-9]{8}");
+                Pattern mat = Pattern.compile("[0-9]{6}");
                 Matcher matriculeEtu = mat.matcher(matricule);
                 boolean correctMatricule = matriculeEtu.find();
                 if (!correctMatricule) {
                     throw new IllegalArgumentException("Erreur. Matricule invalide.");
                 }
 
-
                 System.out.println("Veuillez saisir le code du cours: ");
                 String courseName = scanner.nextLine();
-
-                //Validations
                 Pattern code = Pattern.compile("^[a-zA-Z]{3}[0-9]{4}$");
                 Matcher codeCours = code.matcher(courseName);
                 boolean correctCode = codeCours.find();
@@ -330,113 +384,76 @@ public class Client {
 
                 }
                 if (courInfo.getName() != "") {
-
                     RegistrationForm userRegistration = new RegistrationForm(firstName, lastName, email, matricule, courInfo);
-
+                    System.out.println("HI");
                     justNeedSocket();
+                    System.out.println("CHECKING");
                     objectOutputStream.writeObject(userRegistration);
+                    System.out.println("YO");
                     objectOutputStream.flush();
-
+                    finishTransfer();
+                    System.out.println("HELLO");
                     String msg = ("Félicitations! Inscription réussie de " + userRegistration.getPrenom() + " au cours " + userRegistration.getCourse().getCode());
                     System.out.println(msg);
-
                     finishTransfer();
 
                 } else {
                     System.out.println("Ce cours n'est malheureusement pas disponible.");
-
                     justNeedSocket();
                     objectOutputStream.writeObject("ERROR");
                     objectOutputStream.flush();
                     finishTransfer();
-
                 }
-            }else {
-                message = "";
+            }else{
                 justNeedSocket();
+                String prenomGUI=entry.get(0).toString();
+                String nomGUI=entry.get(1).toString();
+                String emailGUI=entry.get(2).toString();
+                String matriculeGUI=entry.get(3).toString();
+                String courGUI=entry.get(4).toString();
 
-                String prenomGUI = entry.get(0).toString();
-                String nomGUI = entry.get(1).toString();
-                String emailGUI = entry.get(2).toString();
+                System.out.println(courGUI);
 
-                //Validations
-                Pattern mail = Pattern.compile(".+[^.]@.+[.][a-z][a-z][a-z]?$");
-                Matcher courriel = mail.matcher(emailGUI);
-                boolean correctEmail = courriel.find();
 
-                //Message boite d'erreurs
-                if (correctEmail != true) {
-                    message = "Courriel invalide";
+                ArrayList<Course> courseEn =arraylist();
+
+                int size = courseEn.size();
+                Course courInfo = new Course("", "", "");
+                for (int i = 0; i < size; i++) {
+
+                    if (courseEn.get(i).getCode().equals(courGUI)) {
+                        courInfo = courseEn.get(i);
+                    }
+
                 }
-
-
-                String matriculeGUI = entry.get(3).toString();
-
-                //Validations
-                Pattern mat = Pattern.compile("[0-9]{8}");
-                Matcher matriculeEtu = mat.matcher(matriculeGUI);
-                boolean correctMatricule = matriculeEtu.find();
-
-                //Message boite d'erreurs
-                if (correctMatricule ==false) {
-                    if (message == "") {
-                        message = "Matricule invalide";
-                    } else {
-                        message = "Courriel et Matricule Invalide";
-                    }
-                }
-
-                if (message == "") {
-                    String courGUI = entry.get(4).toString();
-
-                    ArrayList<Course> courseEn = arraylist();
-
-                    int size = courseEn.size();
-                    Course courInfo = new Course("", "", "");
-                    for (int i = 0; i < size; i++) {
-
-                        if (courseEn.get(i).getCode().equals(courGUI)) {
-                            courInfo = courseEn.get(i);
-                        }
-
-                    }
-                    if (courInfo.getName() != "") {
-
-                        RegistrationForm userRegistration = new RegistrationForm(prenomGUI, nomGUI, emailGUI, matriculeGUI, courInfo);
-                        objectOutputStream.writeObject(userRegistration);
-                        objectOutputStream.flush();
-
-                        String msg = ("Félicitations! Inscription réussie de " + userRegistration.getPrenom() + " au cours " + userRegistration.getCourse().getCode());
-
-                        message = (msg);
-
-                        finishTransfer();
-
-                    } else {
-
-                        message = ("");
-
-                        objectOutputStream.writeObject("ERROR");
-                        objectOutputStream.flush();
-
-                        finishTransfer();
-                    }
-
-                }else {
-                    objectOutputStream.writeObject("ERROR");
-
+                if (courInfo.getName() != "") {
+                    RegistrationForm userRegistration = new RegistrationForm(prenomGUI, nomGUI, emailGUI, matriculeGUI, courInfo);
+                    objectOutputStream.writeObject(userRegistration);
                     objectOutputStream.flush();
 
+                    String msg = ("Félicitations! Inscription réussie de " + userRegistration.getPrenom() + " au cours " + userRegistration.getCourse().getCode());
+
+                    message=(msg);
+                    System.out.println(msg);
+                    finishTransfer();
+                } else {
+                    message=("");
+                    System.out.println("Ce cours n'est malheureusement pas disponible.");
+                    objectOutputStream.writeObject("ERROR");
+                    objectOutputStream.flush();
                     finishTransfer();
                 }
+
             }
+
 
             done = false;
 
-        }
 
+
+
+        }
         finishTransfer();
 
     }
 }
-
