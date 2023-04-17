@@ -16,7 +16,7 @@ import java.util.regex.Pattern;
 /**
  * S'occupe des opérations côté client
  */
-public class Client extends Thread {
+public class Client  {
 
     /**
      * Met la liste de cours recue dans un ArrayList
@@ -53,7 +53,7 @@ public class Client extends Thread {
             }
         }
         if (client == null || client.isClosed()) {
-            client = new Socket("localhost", 1337);
+            client = new Socket("localhost", 1237);
 
         }
         objectOutputStream = new ObjectOutputStream(client.getOutputStream());
@@ -68,7 +68,7 @@ public class Client extends Thread {
     public void prepTransfer() throws IOException {
 
         if (client == null || client.isClosed()) {
-            client = new Socket("localhost", 1337);
+            client = new Socket("localhost", 1237);
 
         }
         objectOutputStream = new ObjectOutputStream(client.getOutputStream());
@@ -76,6 +76,8 @@ public class Client extends Thread {
         objectOutputStream.flush();
 
         run();
+
+        finishTransfer();
 
     }
 
@@ -163,9 +165,9 @@ public class Client extends Thread {
          * @throws IOException
          */
     public Client( int port) throws IOException {
-            ClientLauncher.setConnection();
+        ClientLauncher.setConnection();
 
-            this.client = ClientLauncher.getSocket();
+        this.client = ClientLauncher.getSocket();
 
 
         }
@@ -202,9 +204,15 @@ public class Client extends Thread {
                     }
 
                     if (com.equals("1") || com.equals("2") || com.equals("3")) {
-                        connect("CHARGER " + com);
 
-                        objectInputStream = new ObjectInputStream(client.getInputStream());
+                        connect("CHARGER " + com);
+                        System.out.println("OK!"+com);
+
+                        try {
+                            objectInputStream = new ObjectInputStream(client.getInputStream());
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
 
                         ArrayList<Course> leCours = (ArrayList<Course>) objectInputStream.readObject();
 
@@ -289,7 +297,6 @@ public class Client extends Thread {
             try {
                 justNeedSocket();
                 objectOutputStream.writeObject(mot);
-                ;
                 objectOutputStream.flush();
             } catch (IOException e) {
                 // Handle the exception
@@ -297,6 +304,7 @@ public class Client extends Thread {
                 e.printStackTrace();
             }
         }
+
 
         /**
          *

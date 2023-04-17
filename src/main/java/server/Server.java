@@ -10,12 +10,13 @@ import java.net.Socket;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Scanner;
 
 /**
  * S'occupe des opérations côté serveur
  */
-public class Server extends Thread {
+public class Server {
 
     /**
      * Identifie le string "INSCRIRE" en tant que "REGISTER_COMMAND"
@@ -34,30 +35,36 @@ public class Server extends Thread {
 
     /**
      * Crée le socket du serveur et groupe les enventHandlers du serveur
+     *
      * @param port le port à utiliser
      * @throws IOException Si une erreur d'input ou d'output arrive au moment de la création du socket.
      */
     public Server(int port) throws IOException {
         this.server = new ServerSocket(port, 1);
         this.handlers = new ArrayList<EventHandler>();
-
         this.addEventHandler(this::handleEvents);
     }
 
     /**
      * Permet de gérer les évènements
+     *
      * @param h nouvel eventHandler
      */
     public void addEventHandler(EventHandler h) {
         this.handlers.add(h);
     }
 
-    private void alertHandlers(String cmd, String arg) throws IOException, ClassNotFoundException {
+    /**
+     * Envoie les commandes recues aux event handlers
+     *
+     * @param cmd commande recue
+     * @param arg argument recu
+     */
+    private void alertHandlers(String cmd, String arg) {
         for (EventHandler h : this.handlers) {
             h.handle(cmd, arg);
         }
     }
-
 
     /**
      * Permet d'établir et de gérer la connexion avec le client.
@@ -69,7 +76,7 @@ public class Server extends Thread {
                 client = server.accept();
                 server.setReuseAddress(true);
                 System.out.println("Connecté au client: " + client);
-                new Thread(new ClientLauncher()).start();
+
                 objectInputStream = new ObjectInputStream(client.getInputStream());
                 objectOutputStream = new ObjectOutputStream(client.getOutputStream());
                 listen();
@@ -80,13 +87,10 @@ public class Server extends Thread {
             }
         }
     }
-    /*public static void main(String args[]) throws IOException {
-        Server thread1=new Server(1337);
-        thread1.start();
-    }*/
 
     /**
      * Récupère la commande envoyée par le client.
+     *
      * @throws IOException
      * @throws ClassNotFoundException Si l'objet est introuvable
      */
@@ -102,6 +106,7 @@ public class Server extends Thread {
 
     /**
      * Appaire la commande et l'argument ensemble pour traiter les requêtes du client.
+     *
      * @param line Ligne de commande
      * @return retourne la paire contenant la commande et l'argument
      */
@@ -114,6 +119,7 @@ public class Server extends Thread {
 
     /**
      * Déconnecte le client.
+     *
      * @throws IOException Si la méthode rencontre une erreur d'input ou d'output.
      */
     public void disconnect() throws IOException {
@@ -126,12 +132,11 @@ public class Server extends Thread {
     /**
      * Agit en conséquence lorsqu'une requête de chargement (CHARGER) ou d'inscription (INSCRIRE)
      * est envoyée au serveur.
+     *
      * @param cmd commande envoyée par le client
      * @param arg argument entré par l'utilisateur
-     * @throws IOException Si handleRegistration rencontre une erreur d'input ou d'output
-     * @throws ClassNotFoundException Si handleRegistration utilise une classe introuvable
      */
-    public void handleEvents(String cmd, String arg) throws IOException, ClassNotFoundException {
+    public void handleEvents(String cmd, String arg) {
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
         } else if (cmd.equals(LOAD_COMMAND)) {
@@ -140,69 +145,74 @@ public class Server extends Thread {
     }
 
     /**
-     Lire un fichier texte contenant des informations sur les cours et les transofmer en liste d'objets 'Course'.
-     La méthode filtre les cours par la session spécifiée en argument.
-     Ensuite, elle renvoie la liste des cours pour une session au client en utilisant l'objet 'objectOutputStream'.
-     La méthode gère les exceptions si une erreur se produit lors de la lecture du fichier ou de l'écriture de
-     l'objet dans le flux.
-     @param arg la session pour laquelle on veut récupérer la liste des cours
+     * Lire un fichier texte contenant des informations sur les cours et les transofmer en liste d'objets 'Course'.
+     * La méthode filtre les cours par la session spécifiée en argument.
+     * Ensuite, elle renvoie la liste des cours pour une session au client en utilisant l'objet 'objectOutputStream'.
+     * La méthode gère les exceptions si une erreur se produit lors de la lecture du fichier ou de l'écriture de
+     * l'objet dans le flux.
+     *
+     * @param arg la session pour laquelle on veut récupérer la liste des cours
      */
-    public void handleLoadCourses(String arg)  {
-
-        //Trouver le fichier contenant la liste des cours disponibles
-        String filePath = "src/main/java/server/data/cours.txt";
+    public void handleLoadCourses(String arg) {
 
         try {
+            String filePath = "src/main/java/server/data/cours.txt";
+            File file = new File(filePath);
 
-            //Lire le fichier et récupérer les cours
-                String filePath = "src/main/java/server/data/cours.txt";
-
-                Scanner scanner = new Scanner(new File(filePath), StandardCharsets.UTF_8);
-
-                ArrayList<String> lesCours = new ArrayList<String>();
-            //Trier et prendre les cours nécessaires en fonction de la session demandée
-            switch (arg) {
-case "1":
-                        while (scanner.hasNextLine()) {
-                            String unCours = scanner.nextLine();
-                            if (unCours.contains("Automne")) {
-                                lesCours.add(unCours);
-                            }
-                        }
-
-                        scanner.close();
-                        break;
-
-                    case "2":
-                        while (scanner.hasNextLine()) {
-                            String unCours = scanner.nextLine();
-                            if (unCours.contains("Hiver")) {
-                                lesCours.add(unCours);
-                            }
-                        }
-
-                        scanner.close();
-                        break;
-
-                    case "3":
-                        while (scanner.hasNextLine()) {
-                            String unCours = scanner.nextLine();
-                            if (unCours.contains("Ete")) {
-                                lesCours.add(unCours);
-                            }
-                        }
-
-                        scanner.close();
-                        break;
-
-                    default:
-                        throw new IllegalArgumentException("Session invalide.");
-
+            if (!file.exists()) {
+                try {
+                    file.createNewFile();
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+            }
+                Scanner scanner = new Scanner(file, StandardCharsets.UTF_8);
+
+
+            ArrayList<String> lesCours = new ArrayList<String>();
+            //Trier et prendre lecds cours nécessaires en fonction de la session demandée
+            switch (arg) {
+                case "1":
+                    while (scanner.hasNextLine()) {
+                        String unCours = scanner.nextLine();
+                        if (unCours.contains("Automne")) {
+                            lesCours.add(unCours);
+                        }
+                    }
+
+                    scanner.close();
+                    break;
+
+                case "2":
+                    while (scanner.hasNextLine()) {
+                        String unCours = scanner.nextLine();
+                        if (unCours.contains("Hiver")) {
+                            lesCours.add(unCours);
+                        }
+                    }
+
+                    scanner.close();
+                    break;
+
+                case "3":
+                    while (scanner.hasNextLine()) {
+                        String unCours = scanner.nextLine();
+                        if (unCours.contains("Ete")) {
+                            lesCours.add(unCours);
+                        }
+                    }
+
+                    scanner.close();
+                    break;
+
+                default:
+                    throw new IllegalArgumentException("Session invalide.");
+
+            }
 
             //Placement des cours dans des objets Cours
             ArrayList<Course> Cours = new ArrayList<Course>();
-            for (int i=0; i<lesCours.size(); i++) {
+            for (int i = 0; i < lesCours.size(); i++) {
                 String aCourse = (String) lesCours.get(i);
                 String[] words = aCourse.split("\\s+");
                 ArrayList<String> separations = new ArrayList<String>();
@@ -218,7 +228,6 @@ case "1":
             objectOutputStream.flush();
 
 
-
         } catch (FileNotFoundException ex) {
             System.out.println("Le fichier est introuvable.");
         } catch (IOException e) {
@@ -228,49 +237,54 @@ case "1":
 
 
     /**
-     Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer
-     dans un fichier texte et renvoyer un message de confirmation au client. La méthode gére les exceptions si
-     une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
-     @throws IOException Si il y a une erreur d'input ou d'output lors de la lecture de RegistrationForm
-     @throws ClassNotFoundException Si l'objet RegistrationForm est introuvable
+     * Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer
+     * dans un fichier texte et renvoyer un message de confirmation au client. La méthode gére les exceptions si
+     * une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
      */
-    public void handleRegistration() throws IOException, ClassNotFoundException {
-
-        RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
-
-        String filename = "src/main/java/server/data/inscription.txt";
-        BufferedReader reader = null;
+    public void handleRegistration() {
 
 
-         FileOutputStream fos = null;
-        BufferedWriter writer = null;
-       
         try {
-            fos = new FileOutputStream(filename, true);
-            writer = new BufferedWriter(new OutputStreamWriter(fos));
-            String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
-           
-            writer.append("\n\n" + s);
-            writer.flush();
-            String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
-            System.out.println(msg);
+            RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
+            String filename = "src/main/java/server/data/inscription.txt";
+            BufferedReader reader = null;
+
+
+            FileOutputStream fos = null;
+            BufferedWriter writer = null;
+
+            try {
+                fos = new FileOutputStream(filename, true);
+                writer = new BufferedWriter(new OutputStreamWriter(fos));
+                String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
+
+                writer.append("\n\n" + s);
+                writer.flush();
+                String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
+                System.out.println(msg);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                // Close both the writer and the file output stream, even if an exception was thrown
+                if (writer != null) {
+                    try {
+                        writer.close();
+                    } catch (IOException e) {
+                        // Handle the exception
+                    }
+                }
+                if (fos != null) {
+                    try {
+                        fos.close();
+                    } catch (IOException e) {
+                        // Handle the exception
+                    }
+                }
+            }
         } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            // Close both the writer and the file output stream, even if an exception was thrown
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    // Handle the exception
-                }
-            }
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    // Handle the exception
-                }
-            }
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
