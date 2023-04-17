@@ -42,7 +42,7 @@ public class Client extends Thread{
      */
     public static void justNeedSocket() throws IOException {
 
-        if (client != null && !client.isClosed()) {
+         if (client != null && !client.isClosed()) {
             objectInputStream.close();
             objectOutputStream.close();
             client.close();
@@ -52,9 +52,6 @@ public class Client extends Thread{
 
         }
         objectOutputStream = new ObjectOutputStream(client.getOutputStream());
-
-        objectInputStream = new ObjectInputStream(client.getInputStream());
-
 
     }
 
@@ -68,30 +65,32 @@ public class Client extends Thread{
             client = new Socket("localhost", 1337);
 
         }
-
         objectOutputStream = new ObjectOutputStream(client.getOutputStream());
 
-        objectInputStream = new ObjectInputStream(client.getInputStream());
-
         objectOutputStream.flush();
-
 
         run();
 
         finishTransfer();
-
-    }
 
     /**
      * Met fin aux echanges du client via le socket
      * @throws IOException
      */
     public static void finishTransfer() throws IOException {
-        client.close();
-        ClientLauncher.closeSocket();
-        objectInputStream.close();
+        if (client != null && !client.isClosed()) {
+            client.close();
+        }
+        if (objectInputStream != null) {
+            objectInputStream.close();
+        }
+        if (objectOutputStream != null) {
+            objectOutputStream.close();
+        }
+        if ( ClientLauncher.getSocket() != null) {
+            ClientLauncher.closeSocket();
+        }
 
-        objectOutputStream.close();
     }
 
     /**
@@ -193,22 +192,13 @@ public class Client extends Thread{
                 }
 
                 if (com.equals("1") || com.equals("2") || com.equals("3")) {
-                    try {
+                    connect("CHARGER "+com);
 
-                        objectOutputStream.writeObject("CHARGER " + com);
-                    } catch (IOException e) {
-                        // Handle the exception
-                        System.out.println(com);
-                        e.printStackTrace();
-                    }
-
-                    objectOutputStream.flush();
-
-
+                    objectInputStream = new ObjectInputStream(client.getInputStream());
 
                     ArrayList<Course> leCours =  (ArrayList<Course>) objectInputStream.readObject();
 
-                    System.out.println(leCours);
+
                     setCourseEntry(leCours);
 
 
@@ -270,23 +260,12 @@ public class Client extends Thread{
      * @throws IOException
      * @throws ClassNotFoundException
      */
-    public static ArrayList<Course> charger1( String com) throws IOException, ClassNotFoundException {
-
+        public static ArrayList<Course> charger1(String com) throws IOException, ClassNotFoundException {
 
         // create a socket on the specified port+ object out and in
+        connect("CHARGER "+com);
 
-        justNeedSocket();
-
-        try {
-            objectOutputStream.writeObject("CHARGER "+com);
-        } catch (IOException e) {
-            // Handle the exception
-            System.out.println("CHARGER");
-            e.printStackTrace();
-        }
-
-
-        objectOutputStream.flush();
+        objectInputStream=new ObjectInputStream(client.getInputStream());
 
         ArrayList<Course> Cours =  (ArrayList<Course>) objectInputStream.readObject();
 
@@ -294,9 +273,22 @@ public class Client extends Thread{
 
         System.out.println(Cours);
         finishTransfer();
+
         return arraylist();
 
 
+    }
+    
+    public static void connect(String mot){
+        try {
+            justNeedSocket();
+            objectOutputStream.writeObject(mot);;
+            objectOutputStream.flush();
+        } catch (IOException e) {
+            // Handle the exception
+            System.out.println(mot);
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -309,17 +301,7 @@ public class Client extends Thread{
      */
     public static void inscrire(Boolean dev3,   String com, Boolean done, ArrayList entry) throws IOException {
 
-        try {
-            objectOutputStream.writeObject("INSCRIRE");
-        } catch (IOException e) {
-            // Handle the exception
-            System.out.println("INSCRIRE");
-            e.printStackTrace();
-        }
-
-
-        objectOutputStream.flush();
-
+       
         while (done) {
 
             if (dev3!=true) {
@@ -385,21 +367,20 @@ public class Client extends Thread{
                 }
                 if (courInfo.getName() != "") {
                     RegistrationForm userRegistration = new RegistrationForm(firstName, lastName, email, matricule, courInfo);
-                    System.out.println("HI");
-                    justNeedSocket();
-                    System.out.println("CHECKING");
+            
+                    connect("INSCRIRE");
+                    
                     objectOutputStream.writeObject(userRegistration);
-                    System.out.println("YO");
+                 
                     objectOutputStream.flush();
                     finishTransfer();
-                    System.out.println("HELLO");
                     String msg = ("Félicitations! Inscription réussie de " + userRegistration.getPrenom() + " au cours " + userRegistration.getCourse().getCode());
                     System.out.println(msg);
                     finishTransfer();
 
                 } else {
                     System.out.println("Ce cours n'est malheureusement pas disponible.");
-                    justNeedSocket();
+                    connect("INSCRIRE");
                     objectOutputStream.writeObject("ERROR");
                     objectOutputStream.flush();
                     finishTransfer();
@@ -428,6 +409,7 @@ public class Client extends Thread{
                 }
                 if (courInfo.getName() != "") {
                     RegistrationForm userRegistration = new RegistrationForm(prenomGUI, nomGUI, emailGUI, matriculeGUI, courInfo);
+                    connect("INSCRIRE");
                     objectOutputStream.writeObject(userRegistration);
                     objectOutputStream.flush();
 
@@ -439,6 +421,7 @@ public class Client extends Thread{
                 } else {
                     message=("");
                     System.out.println("Ce cours n'est malheureusement pas disponible.");
+                    connect("INSCRIRE");
                     objectOutputStream.writeObject("ERROR");
                     objectOutputStream.flush();
                     finishTransfer();
