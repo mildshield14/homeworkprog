@@ -14,7 +14,7 @@ public class GUI extends Application {
         Vue laVue = new Vue();
         Controller leControleur = new Controller(leModele, laVue);
 
-        Scene scene = new Scene(laVue, 700, 700);
+        Scene scene = new Scene(laVue, 833, 700);
 
         stage.setScene(scene);
         stage.setTitle("Interface Graphique");
