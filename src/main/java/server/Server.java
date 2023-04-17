@@ -32,34 +32,35 @@ public class Server {
     private ObjectOutputStream objectOutputStream;
     private final ArrayList<EventHandler> handlers;
 
-    /**
+   /**
      * Crée le socket du serveur et groupe les enventHandlers du serveur
-     *
      * @param port le port à utiliser
      * @throws IOException Si une erreur d'input ou d'output arrive au moment de la création du socket.
      */
     public Server(int port) throws IOException {
         this.server = new ServerSocket(port, 1);
         this.handlers = new ArrayList<EventHandler>();
-
         this.addEventHandler(this::handleEvents);
     }
 
     /**
      * Permet de gérer les évènements
-     *
      * @param h nouvel eventHandler
      */
-    public void addEventHandler(EventHandler h) {
+    public void addEventHandler(EventHandler h){
         this.handlers.add(h);
     }
 
-    private void alertHandlers(String cmd, String arg) throws IOException, ClassNotFoundException {
+    /**
+     * Envoie les commandes recues aux event handlers
+     * @param cmd commande recue
+     * @param arg argument recu
+     */
+    private void alertHandlers(String cmd, String arg){
         for (EventHandler h : this.handlers) {
             h.handle(cmd, arg);
         }
     }
-
 
     /**
      * Permet d'établir et de gérer la connexion avec le client.
@@ -127,13 +128,10 @@ public class Server {
     /**
      * Agit en conséquence lorsqu'une requête de chargement (CHARGER) ou d'inscription (INSCRIRE)
      * est envoyée au serveur.
-     *
      * @param cmd commande envoyée par le client
      * @param arg argument entré par l'utilisateur
-     * @throws IOException            Si handleRegistration rencontre une erreur d'input ou d'output
-     * @throws ClassNotFoundException Si handleRegistration utilise une classe introuvable
      */
-    public void handleEvents(String cmd, String arg) throws IOException, ClassNotFoundException {
+    public void handleEvents(String cmd, String arg){
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
         } else if (cmd.equals(LOAD_COMMAND)) {
@@ -226,19 +224,21 @@ public class Server {
     }
 
 
-    /**
-     * Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer
-     * dans un fichier texte et renvoyer un message de confirmation au client. La méthode gére les exceptions si
-     * une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
-     *
-     * @throws IOException            Si il y a une erreur d'input ou d'output lors de la lecture de RegistrationForm
-     * @throws ClassNotFoundException Si l'objet RegistrationForm est introuvable
+   /**
+     Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer
+     dans un fichier texte et renvoyer un message de confirmation au client. La méthode gére les exceptions si
+     une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
      */
-    public void handleRegistration() throws IOException, ClassNotFoundException {
+    public void handleRegistration() {
 
-        RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
 
-        String filename = "src/main/java/server/data/inscription.txt";
+       BufferedReader reader = null;
+        FileOutputStream fos = null;
+        BufferedWriter writer = null;
+
+        try {
+            RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
+            String filename = "src/main/java/server/data/inscription.txt";
         BufferedReader reader = null;
 
 
@@ -256,6 +256,7 @@ public class Server {
             System.out.println(msg);
         } catch (IOException e) {
             e.printStackTrace();
+        } catch (ClassNotFoundException c) {
         } finally {
             // Close both the writer and the file output stream, even if an exception was thrown
             if (writer != null) {
