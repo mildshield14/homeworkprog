@@ -7,10 +7,8 @@ import server.models.RegistrationForm;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner;
 
 /**
  * S'occupe des opérations côté serveur
@@ -37,10 +35,9 @@ public class Server extends Thread {
      * @param port le port à utiliser
      * @throws IOException Si une erreur d'input ou d'output arrive au moment de la création du socket.
      */
-    public Server(int port) throws IOException {
+    public Server(int port) throws IOException, ClassNotFoundException {
         this.server = new ServerSocket(port, 1);
         this.handlers = new ArrayList<EventHandler>();
-
         this.addEventHandler(this::handleEvents);
     }
 
@@ -48,11 +45,16 @@ public class Server extends Thread {
      * Permet de gérer les évènements
      * @param h nouvel eventHandler
      */
-    public void addEventHandler(EventHandler h) {
+    public void addEventHandler(EventHandler h){
         this.handlers.add(h);
     }
 
-    private void alertHandlers(String cmd, String arg) throws IOException, ClassNotFoundException {
+    /**
+     * Envoie les commandes recues aux event handlers
+     * @param cmd commande recue
+     * @param arg argument recu
+     */
+    private void alertHandlers(String cmd, String arg){
         for (EventHandler h : this.handlers) {
             h.handle(cmd, arg);
         }
@@ -87,7 +89,7 @@ public class Server extends Thread {
 
     /**
      * Récupère la commande envoyée par le client.
-     * @throws IOException
+     * @throws IOException Si il y a une erreur
      * @throws ClassNotFoundException Si l'objet est introuvable
      */
     public void listen() throws IOException, ClassNotFoundException {
@@ -128,10 +130,8 @@ public class Server extends Thread {
      * est envoyée au serveur.
      * @param cmd commande envoyée par le client
      * @param arg argument entré par l'utilisateur
-     * @throws IOException Si handleRegistration rencontre une erreur d'input ou d'output
-     * @throws ClassNotFoundException Si handleRegistration utilise une classe introuvable
      */
-    public void handleEvents(String cmd, String arg) throws IOException, ClassNotFoundException {
+    public void handleEvents(String cmd, String arg){
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
         } else if (cmd.equals(LOAD_COMMAND)) {
@@ -155,50 +155,45 @@ public class Server extends Thread {
         try {
 
             //Lire le fichier et récupérer les cours
-                String filePath = "src/main/java/server/data/cours.txt";
+            InputStream listeDesCours = new FileInputStream(new File(filePath));
+            BufferedReader lectureDuFichier = new BufferedReader(new InputStreamReader(listeDesCours));
+            String unCours;
 
-                Scanner scanner = new Scanner(new File(filePath), StandardCharsets.UTF_8);
+            ArrayList<String> lesCours = new ArrayList<String>();
 
-                ArrayList<String> lesCours = new ArrayList<String>();
             //Trier et prendre les cours nécessaires en fonction de la session demandée
             switch (arg) {
-case "1":
-                        while (scanner.hasNextLine()) {
-                            String unCours = scanner.nextLine();
-                            if (unCours.contains("Automne")) {
-                                lesCours.add(unCours);
-                            }
+
+                case "1":
+                    while ((unCours = lectureDuFichier.readLine()) != null) {
+                        if (unCours.contains("Automne")) {
+                            lesCours.add(unCours);
                         }
+                    }
+                    break;
 
-                        scanner.close();
-                        break;
-
-                    case "2":
-                        while (scanner.hasNextLine()) {
-                            String unCours = scanner.nextLine();
-                            if (unCours.contains("Hiver")) {
-                                lesCours.add(unCours);
-                            }
+                case "2":
+                    while ((unCours = lectureDuFichier.readLine()) != null) {
+                        if (unCours.contains("Hiver")) {
+                            lesCours.add(unCours);
                         }
+                    }
+                    break;
 
-                        scanner.close();
-                        break;
-
-                    case "3":
-                        while (scanner.hasNextLine()) {
-                            String unCours = scanner.nextLine();
-                            if (unCours.contains("Ete")) {
-                                lesCours.add(unCours);
-                            }
+                case "3":
+                    while ((unCours = lectureDuFichier.readLine()) != null) {
+                        if (unCours.contains("Ete")) {
+                            lesCours.add(unCours);
                         }
+                    }
+                    break;
 
-                        scanner.close();
-                        break;
+                default:
+                    throw new IllegalArgumentException("Session invalide.");
 
-                    default:
-                        throw new IllegalArgumentException("Session invalide.");
-
-                }
+            }
+            listeDesCours.close();
+            lectureDuFichier.close();
 
             //Placement des cours dans des objets Cours
             ArrayList<Course> Cours = new ArrayList<Course>();
@@ -213,6 +208,7 @@ case "1":
             }
 
             //Envoi de l'objet
+            System.out.println(Cours+"BEFORE PERHAPS");
             objectOutputStream.writeObject(Cours);
             System.out.println(Cours);
             objectOutputStream.flush();
@@ -231,32 +227,30 @@ case "1":
      Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer
      dans un fichier texte et renvoyer un message de confirmation au client. La méthode gére les exceptions si
      une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
-     @throws IOException Si il y a une erreur d'input ou d'output lors de la lecture de RegistrationForm
-     @throws ClassNotFoundException Si l'objet RegistrationForm est introuvable
      */
-    public void handleRegistration() throws IOException, ClassNotFoundException {
-
-        RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
-
-        String filename = "src/main/java/server/data/inscription.txt";
-        BufferedReader reader = null;
+    public void handleRegistration() {
 
 
-         FileOutputStream fos = null;
+       BufferedReader reader = null;
+        FileOutputStream fos = null;
         BufferedWriter writer = null;
-       
+
         try {
+            RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
+            String filename = "src/main/java/server/data/inscription.txt";
             fos = new FileOutputStream(filename, true);
             writer = new BufferedWriter(new OutputStreamWriter(fos));
             String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
-           
+
             writer.append("\n\n" + s);
             writer.flush();
             String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
             System.out.println(msg);
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
+        }
+        catch (ClassNotFoundException c) {
+        }finally {
             // Close both the writer and the file output stream, even if an exception was thrown
             if (writer != null) {
                 try {
@@ -272,5 +266,6 @@ case "1":
                     // Handle the exception
                 }
             }
+        }
     }
 }
