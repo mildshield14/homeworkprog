@@ -153,8 +153,8 @@ public class Server extends Thread {
         try {
 
             //Lire le fichier et récupérer les cours
-            FileReader listeDesCours = new FileReader(filePath);
-            BufferedReader lectureDuFichier = new BufferedReader(listeDesCours);
+            InputStream listeDesCours = new FileInputStream(new File(filePath));
+           BufferedReader lectureDuFichier = new BufferedReader(new InputStreamReader(listeDesCours));
             String unCours;
 
             ArrayList<String> lesCours = new ArrayList<String>();
@@ -236,34 +236,35 @@ public class Server extends Thread {
         BufferedReader reader = null;
 
 
-        FileWriter fw = null;
+         FileOutputStream fos = null;
         BufferedWriter writer = null;
-
-
-        fw = new FileWriter("src/main/java/server/data/inscription.txt", true);
-        writer = new BufferedWriter(fw);
-        String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
-
-        writer.append("\n\n" + s);
-
-        String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
-        System.out.println(msg);
-
-
-        // Close both the writer and the file writer, even if an exception was thrown
-        if (writer != null) {
-            try {
-                writer.close();
-            } catch (IOException e) {
-                // Handle the exception
+       
+        try {
+            fos = new FileOutputStream(filename, true);
+            writer = new BufferedWriter(new OutputStreamWriter(fos));
+            String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
+           
+            writer.append("\n\n" + s);
+            writer.flush();
+            String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
+            System.out.println(msg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            // Close both the writer and the file output stream, even if an exception was thrown
+            if (writer != null) {
+                try {
+                    writer.close();
+                } catch (IOException e) {
+                    // Handle the exception
+                }
             }
-        }
-        if (fw != null) {
-            try {
-                fw.close();
-            } catch (IOException e) {
-                // Handle the exception
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    // Handle the exception
+                }
             }
-        }
     }
 }
