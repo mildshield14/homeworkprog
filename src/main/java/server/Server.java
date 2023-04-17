@@ -32,8 +32,9 @@ public class Server {
     private ObjectOutputStream objectOutputStream;
     private final ArrayList<EventHandler> handlers;
 
-   /**
+    /**
      * Crée le socket du serveur et groupe les enventHandlers du serveur
+     *
      * @param port le port à utiliser
      * @throws IOException Si une erreur d'input ou d'output arrive au moment de la création du socket.
      */
@@ -45,18 +46,20 @@ public class Server {
 
     /**
      * Permet de gérer les évènements
+     *
      * @param h nouvel eventHandler
      */
-    public void addEventHandler(EventHandler h){
+    public void addEventHandler(EventHandler h) {
         this.handlers.add(h);
     }
 
     /**
      * Envoie les commandes recues aux event handlers
+     *
      * @param cmd commande recue
      * @param arg argument recu
      */
-    private void alertHandlers(String cmd, String arg){
+    private void alertHandlers(String cmd, String arg) {
         for (EventHandler h : this.handlers) {
             h.handle(cmd, arg);
         }
@@ -128,10 +131,11 @@ public class Server {
     /**
      * Agit en conséquence lorsqu'une requête de chargement (CHARGER) ou d'inscription (INSCRIRE)
      * est envoyée au serveur.
+     *
      * @param cmd commande envoyée par le client
      * @param arg argument entré par l'utilisateur
      */
-    public void handleEvents(String cmd, String arg){
+    public void handleEvents(String cmd, String arg) {
         if (cmd.equals(REGISTER_COMMAND)) {
             handleRegistration();
         } else if (cmd.equals(LOAD_COMMAND)) {
@@ -224,55 +228,56 @@ public class Server {
     }
 
 
-   /**
-     Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer
-     dans un fichier texte et renvoyer un message de confirmation au client. La méthode gére les exceptions si
-     une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
+    /**
+     * Récupérer l'objet 'RegistrationForm' envoyé par le client en utilisant 'objectInputStream', l'enregistrer
+     * dans un fichier texte et renvoyer un message de confirmation au client. La méthode gére les exceptions si
+     * une erreur se produit lors de la lecture de l'objet, l'écriture dans un fichier ou dans le flux de sortie.
      */
     public void handleRegistration() {
-
-
-       BufferedReader reader = null;
-        FileOutputStream fos = null;
-        BufferedWriter writer = null;
+        
 
         try {
             RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
             String filename = "src/main/java/server/data/inscription.txt";
-        BufferedReader reader = null;
+            BufferedReader reader = null;
 
 
-        FileOutputStream fos = null;
-        BufferedWriter writer = null;
+            FileOutputStream fos = null;
+            BufferedWriter writer = null;
 
-        try {
-            fos = new FileOutputStream(filename, true);
-            writer = new BufferedWriter(new OutputStreamWriter(fos));
-            String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
+            try {
+                fos = new FileOutputStream(filename, true);
+                writer = new BufferedWriter(new OutputStreamWriter(fos));
+                String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
 
-            writer.append("\n\n" + s);
-            writer.flush();
-            String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
-            System.out.println(msg);
+                writer.append("\n\n" + s);
+                writer.flush();
+                String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
+                System.out.println(msg);
+            } catch (IOException e) {
+                e.printStackTrace();
+            } finally {
+                // Close both the writer and the file output stream, even if an exception was thrown
+                if (writer != null) {
+                    try {
+                        writer.close();
+                    } catch (IOException e) {
+                        // Handle the exception
+                    }
+                }
+                if (fos != null) {
+                    try {
+                        fos.close();
+                    } catch (IOException e) {
+                        // Handle the exception
+                    }
+                }
+            }
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (ClassNotFoundException c) {
-        } finally {
-            // Close both the writer and the file output stream, even if an exception was thrown
-            if (writer != null) {
-                try {
-                    writer.close();
-                } catch (IOException e) {
-                    // Handle the exception
-                }
-            }
-            if (fos != null) {
-                try {
-                    fos.close();
-                } catch (IOException e) {
-                    // Handle the exception
-                }
-            }
+            throw new RuntimeException(e);
+        } catch (ClassNotFoundException e) {
+            throw new RuntimeException(e);
         }
     }
+
 }
