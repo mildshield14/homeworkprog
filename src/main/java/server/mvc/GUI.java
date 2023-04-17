@@ -28,13 +28,7 @@ public class GUI extends Application {
         stage.show();
     }
     
-    /**
-    * Lance l'application
-    * @param args
-    */
-    public static void main(String[] args) {
-        launch(args);
-    }
+   
 
 }
 
