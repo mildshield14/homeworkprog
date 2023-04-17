@@ -42,10 +42,16 @@ public class Client extends Thread{
      */
     public static void justNeedSocket() throws IOException {
 
-         if (client != null && !client.isClosed()) {
-            objectInputStream.close();
-            objectOutputStream.close();
-            client.close();
+          if (client != null && !client.isClosed()) {
+            if (objectInputStream != null) {
+                objectInputStream.close();
+            }
+            if (objectOutputStream != null) {
+                objectOutputStream.close();
+            }
+            if (client != null && !client.isClosed()) {
+                client.close();
+            }
         }
         if (client == null || client.isClosed()) {
             client = new Socket("localhost", 1337);
