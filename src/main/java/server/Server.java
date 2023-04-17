@@ -7,8 +7,10 @@ import server.models.RegistrationForm;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Scanner;
 
 /**
  * S'occupe des opérations côté serveur
@@ -153,45 +155,50 @@ public class Server extends Thread {
         try {
 
             //Lire le fichier et récupérer les cours
-            InputStream listeDesCours = new FileInputStream(new File(filePath));
-           BufferedReader lectureDuFichier = new BufferedReader(new InputStreamReader(listeDesCours));
-            String unCours;
+                String filePath = "src/main/java/server/data/cours.txt";
 
-            ArrayList<String> lesCours = new ArrayList<String>();
+                Scanner scanner = new Scanner(new File(filePath), StandardCharsets.UTF_8);
 
+                ArrayList<String> lesCours = new ArrayList<String>();
             //Trier et prendre les cours nécessaires en fonction de la session demandée
             switch (arg) {
-
-                case "1":
-                    while ((unCours = lectureDuFichier.readLine()) != null) {
-                        if (unCours.contains("Automne")) {
-                            lesCours.add(unCours);
+case "1":
+                        while (scanner.hasNextLine()) {
+                            String unCours = scanner.nextLine();
+                            if (unCours.contains("Automne")) {
+                                lesCours.add(unCours);
+                            }
                         }
-                    }
-                    break;
 
-                case "2":
-                    while ((unCours = lectureDuFichier.readLine()) != null) {
-                        if (unCours.contains("Hiver")) {
-                            lesCours.add(unCours);
+                        scanner.close();
+                        break;
+
+                    case "2":
+                        while (scanner.hasNextLine()) {
+                            String unCours = scanner.nextLine();
+                            if (unCours.contains("Hiver")) {
+                                lesCours.add(unCours);
+                            }
                         }
-                    }
-                    break;
 
-                case "3":
-                    while ((unCours = lectureDuFichier.readLine()) != null) {
-                        if (unCours.contains("Ete")) {
-                            lesCours.add(unCours);
+                        scanner.close();
+                        break;
+
+                    case "3":
+                        while (scanner.hasNextLine()) {
+                            String unCours = scanner.nextLine();
+                            if (unCours.contains("Ete")) {
+                                lesCours.add(unCours);
+                            }
                         }
-                    }
-                    break;
 
-                default:
-                    throw new IllegalArgumentException("Session invalide.");
+                        scanner.close();
+                        break;
 
-            }
-            listeDesCours.close();
-            lectureDuFichier.close();
+                    default:
+                        throw new IllegalArgumentException("Session invalide.");
+
+                }
 
             //Placement des cours dans des objets Cours
             ArrayList<Course> Cours = new ArrayList<Course>();
@@ -206,7 +213,6 @@ public class Server extends Thread {
             }
 
             //Envoi de l'objet
-            System.out.println(Cours+"BEFORE PERHAPS");
             objectOutputStream.writeObject(Cours);
             System.out.println(Cours);
             objectOutputStream.flush();
