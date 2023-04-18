@@ -1,2 +1,2 @@
 # IFT1025-TP2-server
-on a utilise javfx 19
+on a utilise javafx 19
