@@ -156,7 +156,7 @@ public class Server {
     public void handleLoadCourses(String arg) {
 
         try {
-            String filePath = "src/main/java/server/data/cours.txt";
+            String filePath = "/data/cours.txt";
             File file = new File(filePath);
 
             if (!file.exists()) {
