@@ -37,7 +37,8 @@ public class Client  {
     private static ObjectOutputStream objectOutputStream;
 
     /**
-     * @throws IOException
+    * Ouvre et ferme les streams et le socket
+     * @throws IOException Si il y a une erreur dans les streams
      */
     public static void justNeedSocket() throws IOException {
 
@@ -62,7 +63,6 @@ public class Client  {
 
     /**
      * Connecte le client
-     *
      * @throws IOException
      */
     public void prepTransfer() throws IOException {
@@ -159,7 +159,7 @@ public class Client  {
         }
 
 
-        /**
+        /** Recupere le socket pour connecter le client
          *
          * @param port
          * @throws IOException
@@ -173,7 +173,7 @@ public class Client  {
         }
 
         /**
-         *
+         * Commence le programme principal et prend les entrees de l'utilisateur
          */
         public void run () {
 
@@ -268,11 +268,11 @@ public class Client  {
 
 
         /**
-         *
-         * @param com
-         * @return
-         * @throws IOException
-         * @throws ClassNotFoundException
+         * Charge les cours
+         * @param com la session desiree
+         * @return Retourne les cours de la session choisie
+         * @throws IOException Si il y a un probleme avec la liste de cours
+         * @throws ClassNotFoundException Si la liste de cours est introuvable
          */
         public static ArrayList<Course> charger1 (String com) throws IOException, ClassNotFoundException {
 
@@ -293,6 +293,9 @@ public class Client  {
 
         }
 
+    /**
+    * Active la connection du client
+    */
         public static void connect (String mot){
             try {
                 justNeedSocket();
@@ -307,12 +310,12 @@ public class Client  {
 
 
         /**
-         *
+         * Enregistre les reponses du client et effectue l'inscription
          * @param dev3
-         * @param com
+         * @param com session choisie
          * @param done
-         * @param entry
-         * @throws IOException
+         * @param entry la liste de cours
+         * @throws IOException Si la liste de cours est mal entree
          */
         public static void inscrire (Boolean dev3, String com, Boolean done, ArrayList entry) throws IOException {
 
