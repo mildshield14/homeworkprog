@@ -156,16 +156,9 @@ public class Server {
     public void handleLoadCourses(String arg) {
 
         try {
-            String filePath = "/data/cours.txt";
-            File file = new File(filePath);
 
-            if (!file.exists()) {
-                try {
-                    file.createNewFile();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            InputStream file = getClass().getResourceAsStream("/data/cours.txt");
+
                 Scanner scanner = new Scanner(file, StandardCharsets.UTF_8);
 
 
