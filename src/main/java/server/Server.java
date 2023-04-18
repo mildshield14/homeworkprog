@@ -239,40 +239,29 @@ public class Server {
 
         try {
             RegistrationForm registrationForm = (RegistrationForm) objectInputStream.readObject();
+
             String filename = "src/main/java/server/data/inscription.txt";
             BufferedReader reader = null;
 
 
-            FileOutputStream fos = null;
-            BufferedWriter writer = null;
-
             try {
-                fos = new FileOutputStream(filename, true);
-                writer = new BufferedWriter(new OutputStreamWriter(fos));
+                File file = new File("src/main/java/server/data/inscription.txt");
+                FileOutputStream fos = new FileOutputStream(file, true);
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(fos));
+
                 String s = (registrationForm.getCourse().getSession() + "\t" + registrationForm.getCourse().getCode() + "\t" + registrationForm.getMatricule() + "\t" + registrationForm.getPrenom() + "\t" + registrationForm.getNom() + "\t" + registrationForm.getEmail());
 
                 writer.append("\n\n" + s);
                 writer.flush();
+                fos.close();
+                        writer.close();
                 String msg = ("Félicitations! Inscription réussie de " + registrationForm.getPrenom() + " au cours " + registrationForm.getCourse().getCode());
                 System.out.println(msg);
             } catch (IOException e) {
                 e.printStackTrace();
             } finally {
                 // Close both the writer and the file output stream, even if an exception was thrown
-                if (writer != null) {
-                    try {
-                        writer.close();
-                    } catch (IOException e) {
-                        // Handle the exception
-                    }
-                }
-                if (fos != null) {
-                    try {
-                        fos.close();
-                    } catch (IOException e) {
-                        // Handle the exception
-                    }
-                }
+
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
